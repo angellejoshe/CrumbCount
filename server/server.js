@@ -1,16 +1,11 @@
 import express from 'express'
 import cors from 'cors'
 import { pool } from './db/pool.js'
-import * as sightings from './sightingsRepo.js'
+import * as crumbcount from './sightingsRepo.js'
 
 const app = express()
 
-// CORS before the routes. Middleware registered after a route never sees that
-// route's requests, which is the m4 lesson showing up in production.
-//
-// Name your origins. app.use(cors()) with no options sends
-// Access-Control-Allow-Origin: *, which lets any site on the internet call this
-// API from a visitor's browser, and is incompatible with cookies.
+// Only allow the frontend origins configured for this application.
 const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
   .split(',')
   .map((origin) => origin.trim())
@@ -19,13 +14,14 @@ const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
 app.use(cors({ origin: allowedOrigins }))
 app.use(express.json({ limit: '100kb' }))
 
-// Is the process alive?
+// --------------------------------------------------
+// Health checks
+// --------------------------------------------------
+
 app.get('/healthz', (request, response) => {
   response.json({ ok: true })
 })
 
-// Is the database reachable? A different question, and the one that tells you
-// in two seconds which half of a problem you have.
 app.get('/readyz', async (request, response) => {
   try {
     await pool.query('SELECT 1')
@@ -36,90 +32,426 @@ app.get('/readyz', async (request, response) => {
   }
 })
 
-// Validation lives on the server because the client can be bypassed. The
-// browser form is for a fast, friendly message; this is for correctness.
-function validate(body) {
-  const errors = []
-  const place = typeof body.place === 'string' ? body.place.trim() : ''
-  const description =
-    typeof body.description === 'string' ? body.description.trim() : ''
-  const spookiness = Number(body.spookiness)
+// --------------------------------------------------
+// Validation helpers
+// --------------------------------------------------
 
-  if (!place) errors.push('place is required')
-  if (place.length > 120) errors.push('place must be 120 characters or fewer')
-  if (description.length > 2000) errors.push('description must be 2000 characters or fewer')
-  if (!Number.isInteger(spookiness) || spookiness < 1 || spookiness > 5) {
-    errors.push('spookiness must be a whole number from 1 to 5')
+function validateId(value) {
+  const id = Number(value)
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return null
   }
 
-  return { errors, value: { place, description, spookiness } }
+  return id
 }
 
-app.get('/api/sightings', async (request, response, next) => {
+function validateIngredient(body) {
+  const errors = []
+
+  const name =
+    typeof body.name === 'string' ? body.name.trim() : ''
+
+  const category =
+    typeof body.category === 'string' ? body.category.trim() : ''
+
+  const unit =
+    typeof body.unit === 'string' ? body.unit.trim() : ''
+
+  const stockQuantity = Number(body.stockQuantity)
+  const currentPrice = Number(body.currentPrice)
+  const reorderLevel = Number(body.reorderLevel)
+
+  if (!name) {
+    errors.push('name is required')
+  } else if (name.length > 120) {
+    errors.push('name must be 120 characters or fewer')
+  }
+
+  if (!category) {
+    errors.push('category is required')
+  } else if (category.length > 80) {
+    errors.push('category must be 80 characters or fewer')
+  }
+
+  if (!unit) {
+    errors.push('unit is required')
+  } else if (unit.length > 30) {
+    errors.push('unit must be 30 characters or fewer')
+  }
+
+  if (!Number.isFinite(stockQuantity) || stockQuantity < 0) {
+    errors.push('stockQuantity must be a non-negative number')
+  }
+
+  if (!Number.isFinite(currentPrice) || currentPrice < 0) {
+    errors.push('currentPrice must be a non-negative number')
+  }
+
+  if (!Number.isFinite(reorderLevel) || reorderLevel < 0) {
+    errors.push('reorderLevel must be a non-negative number')
+  }
+
+  return {
+    errors,
+    value: {
+      name,
+      category,
+      stockQuantity,
+      unit,
+      currentPrice,
+      reorderLevel,
+    },
+  }
+}
+
+function validateRecipe(body) {
+  const errors = []
+
+  const productName =
+    typeof body.productName === 'string'
+      ? body.productName.trim()
+      : ''
+
+  const yieldAmount = Number(body.yieldAmount)
+  const sellingPrice = Number(body.sellingPrice)
+
+  if (!productName) {
+    errors.push('productName is required')
+  } else if (productName.length > 120) {
+    errors.push('productName must be 120 characters or fewer')
+  }
+
+  if (!Number.isInteger(yieldAmount) || yieldAmount <= 0) {
+    errors.push('yieldAmount must be a positive whole number')
+  }
+
+  if (!Number.isFinite(sellingPrice) || sellingPrice < 0) {
+    errors.push('sellingPrice must be a non-negative number')
+  }
+
+  if (!Array.isArray(body.ingredients) || body.ingredients.length === 0) {
+    errors.push('at least one ingredient is required')
+  }
+
+  const ingredients = Array.isArray(body.ingredients)
+    ? body.ingredients.map((ingredient) => ({
+        ingredientId: Number(ingredient.ingredientId),
+        quantity: Number(ingredient.quantity),
+      }))
+    : []
+
+  for (const ingredient of ingredients) {
+    if (
+      !Number.isInteger(ingredient.ingredientId) ||
+      ingredient.ingredientId <= 0
+    ) {
+      errors.push('each ingredientId must be a positive whole number')
+      break
+    }
+
+    if (!Number.isFinite(ingredient.quantity) || ingredient.quantity <= 0) {
+      errors.push('each ingredient quantity must be greater than zero')
+      break
+    }
+  }
+
+  return {
+    errors,
+    value: {
+      productName,
+      yieldAmount,
+      sellingPrice,
+      ingredients,
+    },
+  }
+}
+
+// --------------------------------------------------
+// Ingredients / Inventory API
+// --------------------------------------------------
+
+app.get('/api/ingredients', async (request, response, next) => {
   try {
-    response.json(await sightings.getAll(pool))
+    response.json(await crumbcount.getAllIngredients(pool))
   } catch (error) {
     next(error)
   }
 })
 
-app.get('/api/sightings/:id', async (request, response, next) => {
+app.get('/api/ingredients/:id', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid ingredient id' })
+  }
+
   try {
-    const row = await sightings.getById(pool, request.params.id)
-    if (!row) return response.status(404).json({ error: 'Not found' })
-    response.json(row)
+    const ingredient = await crumbcount.getIngredientById(pool, id)
+
+    if (!ingredient) {
+      return response.status(404).json({ error: 'Ingredient not found' })
+    }
+
+    response.json(ingredient)
   } catch (error) {
     next(error)
   }
 })
 
-app.post('/api/sightings', async (request, response, next) => {
-  const { errors, value } = validate(request.body ?? {})
-  if (errors.length > 0) return response.status(400).json({ error: errors.join('; ') })
+app.post('/api/ingredients', async (request, response, next) => {
+  const { errors, value } = validateIngredient(request.body ?? {})
+
+  if (errors.length > 0) {
+    return response.status(400).json({
+      error: errors.join('; '),
+    })
+  }
 
   try {
-    response.status(201).json(await sightings.create(pool, value))
+    const ingredient = await crumbcount.createIngredient(pool, value)
+    response.status(201).json(ingredient)
   } catch (error) {
     next(error)
   }
 })
 
-app.put('/api/sightings/:id', async (request, response, next) => {
-  const { errors, value } = validate(request.body ?? {})
-  if (errors.length > 0) return response.status(400).json({ error: errors.join('; ') })
+app.put('/api/ingredients/:id', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid ingredient id' })
+  }
+
+  const { errors, value } = validateIngredient(request.body ?? {})
+
+  if (errors.length > 0) {
+    return response.status(400).json({
+      error: errors.join('; '),
+    })
+  }
 
   try {
-    const row = await sightings.update(pool, request.params.id, value)
-    if (!row) return response.status(404).json({ error: 'Not found' })
-    response.json(row)
+    const ingredient = await crumbcount.updateIngredient(
+      pool,
+      id,
+      value
+    )
+
+    if (!ingredient) {
+      return response.status(404).json({ error: 'Ingredient not found' })
+    }
+
+    response.json(ingredient)
   } catch (error) {
     next(error)
   }
 })
 
-app.delete('/api/sightings/:id', async (request, response, next) => {
+app.patch('/api/ingredients/:id/stock', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid ingredient id' })
+  }
+
+  const stockQuantity = Number(request.body?.stockQuantity)
+
+  if (!Number.isFinite(stockQuantity) || stockQuantity < 0) {
+    return response.status(400).json({
+      error: 'stockQuantity must be a non-negative number',
+    })
+  }
+
   try {
-    const removed = await sightings.remove(pool, request.params.id)
-    if (!removed) return response.status(404).json({ error: 'Not found' })
+    const ingredient = await crumbcount.updateIngredientStock(
+      pool,
+      id,
+      stockQuantity
+    )
+
+    if (!ingredient) {
+      return response.status(404).json({ error: 'Ingredient not found' })
+    }
+
+    response.json(ingredient)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.patch('/api/ingredients/:id/price', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid ingredient id' })
+  }
+
+  const currentPrice = Number(request.body?.currentPrice)
+
+  if (!Number.isFinite(currentPrice) || currentPrice < 0) {
+    return response.status(400).json({
+      error: 'currentPrice must be a non-negative number',
+    })
+  }
+
+  try {
+    const ingredient = await crumbcount.updateIngredientPrice(
+      pool,
+      id,
+      currentPrice
+    )
+
+    if (!ingredient) {
+      return response.status(404).json({ error: 'Ingredient not found' })
+    }
+
+    response.json(ingredient)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.delete('/api/ingredients/:id', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid ingredient id' })
+  }
+
+  try {
+    const removed = await crumbcount.removeIngredient(pool, id)
+
+    if (!removed) {
+      return response.status(404).json({ error: 'Ingredient not found' })
+    }
+
     response.status(204).end()
   } catch (error) {
     next(error)
   }
 })
 
+// --------------------------------------------------
+// Recipe Costing API
+// --------------------------------------------------
+
+app.get('/api/recipes', async (request, response, next) => {
+  try {
+    response.json(await crumbcount.getAllRecipes(pool))
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.get('/api/recipes/:id', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid recipe id' })
+  }
+
+  try {
+    const recipe = await crumbcount.getRecipeById(pool, id)
+
+    if (!recipe) {
+      return response.status(404).json({ error: 'Recipe not found' })
+    }
+
+    response.json(recipe)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.post('/api/recipes', async (request, response, next) => {
+  const { errors, value } = validateRecipe(request.body ?? {})
+
+  if (errors.length > 0) {
+    return response.status(400).json({
+      error: errors.join('; '),
+    })
+  }
+
+  try {
+    const recipe = await crumbcount.createRecipe(pool, value)
+    response.status(201).json(recipe)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.put('/api/recipes/:id', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid recipe id' })
+  }
+
+  const { errors, value } = validateRecipe(request.body ?? {})
+
+  if (errors.length > 0) {
+    return response.status(400).json({
+      error: errors.join('; '),
+    })
+  }
+
+  try {
+    const recipe = await crumbcount.updateRecipe(
+      pool,
+      id,
+      value
+    )
+
+    if (!recipe) {
+      return response.status(404).json({ error: 'Recipe not found' })
+    }
+
+    response.json(recipe)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.delete('/api/recipes/:id', async (request, response, next) => {
+  const id = validateId(request.params.id)
+
+  if (!id) {
+    return response.status(400).json({ error: 'Invalid recipe id' })
+  }
+
+  try {
+    const removed = await crumbcount.removeRecipe(pool, id)
+
+    if (!removed) {
+      return response.status(404).json({ error: 'Recipe not found' })
+    }
+
+    response.status(204).end()
+  } catch (error) {
+    next(error)
+  }
+})
+
+// --------------------------------------------------
+// Error handling
+// --------------------------------------------------
+
 app.use((request, response) => {
   response.status(404).json({ error: 'No such route' })
 })
 
-// The detail goes in your logs; the visitor gets a plain message. Sending a
-// stack trace to a stranger tells them about your file layout and dependencies.
 app.use((error, request, response, next) => {
   console.error(error)
-  response.status(500).json({ error: 'Something went wrong on the server' })
+  response.status(500).json({
+    error: 'Something went wrong on the server',
+  })
 })
 
-// The host chooses the port and tells you through PORT. Hardcoding 3000 is the
-// commonest reason a first deploy is marked unhealthy and killed.
+// --------------------------------------------------
+// Start server
+// --------------------------------------------------
+
 const port = process.env.PORT || 3000
 
 app.listen(port, () => {

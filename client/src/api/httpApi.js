@@ -1,40 +1,98 @@
-// The real client. Every function here talks to YOUR Express API.
-//
-// This is the file that matters for your finals project. mockApi.js exists so
-// you can build the interface before this has anywhere to point.
+// The real CrumbCount client API.
+// Every function here communicates with the Express backend.
 
-const BASE = import.meta.env.VITE_API_BASE_URL || ''
+const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
-async function request(path, options) {
+async function request(path, options = {}) {
   const response = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
     ...options,
   })
 
   if (!response.ok) {
-    // Try to use the API's own message; fall back to the status line.
     let message = `${response.status} ${response.statusText}`
+
     try {
       const body = await response.json()
-      if (body?.error) message = body.error
+
+      if (body?.error) {
+        message = body.error
+      }
     } catch {
-      // The body was not JSON. The status line is all we have.
+      // Response was not JSON.
     }
+
     throw new Error(message)
   }
 
   return response.status === 204 ? null : response.json()
 }
 
-export const listSightings = () => request('/api/sightings')
+// --------------------------------------------------
+// Ingredients / Inventory
+// --------------------------------------------------
 
-export const getSighting = (id) => request(`/api/sightings/${id}`)
+export const listIngredients = () =>
+  request('/api/ingredients')
 
-export const createSighting = (input) =>
-  request('/api/sightings', { method: 'POST', body: JSON.stringify(input) })
+export const getIngredient = (id) =>
+  request(`/api/ingredients/${id}`)
 
-export const updateSighting = (id, input) =>
-  request(`/api/sightings/${id}`, { method: 'PUT', body: JSON.stringify(input) })
+export const createIngredient = (input) =>
+  request('/api/ingredients', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
 
-export const deleteSighting = (id) =>
-  request(`/api/sightings/${id}`, { method: 'DELETE' })
+export const updateIngredient = (id, input) =>
+  request(`/api/ingredients/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+
+export const updateIngredientStock = (id, stockQuantity) =>
+  request(`/api/ingredients/${id}/stock`, {
+    method: 'PATCH',
+    body: JSON.stringify({ stockQuantity }),
+  })
+
+export const updateIngredientPrice = (id, currentPrice) =>
+  request(`/api/ingredients/${id}/price`, {
+    method: 'PATCH',
+    body: JSON.stringify({ currentPrice }),
+  })
+
+export const deleteIngredient = (id) =>
+  request(`/api/ingredients/${id}`, {
+    method: 'DELETE',
+  })
+
+// --------------------------------------------------
+// Recipe Costing
+// --------------------------------------------------
+
+export const listRecipes = () =>
+  request('/api/recipes')
+
+export const getRecipe = (id) =>
+  request(`/api/recipes/${id}`)
+
+export const createRecipe = (input) =>
+  request('/api/recipes', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+
+export const updateRecipe = (id, input) =>
+  request(`/api/recipes/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+
+export const deleteRecipe = (id) =>
+  request(`/api/recipes/${id}`, {
+    method: 'DELETE',
+  })
