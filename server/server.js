@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import express from 'express'
 import cors from 'cors'
+
 import { pool } from './db/pool.js'
 import * as crumbcount from './sightingsRepo.js'
 
@@ -98,11 +99,21 @@ function validateIngredient(body) {
   const category =
     typeof body.category === 'string' ? body.category.trim() : ''
 
-  const unit =
-    typeof body.unit === 'string' ? body.unit.trim() : ''
+  const purchaseUnit =
+    typeof body.purchaseUnit === 'string'
+      ? body.purchaseUnit.trim()
+      : ''
+
+  const recipeUnit =
+    typeof body.recipeUnit === 'string'
+      ? body.recipeUnit.trim()
+      : ''
 
   const stockQuantity = Number(body.stockQuantity)
   const currentPrice = Number(body.currentPrice)
+  const quantityPerPurchaseUnit = Number(
+    body.quantityPerPurchaseUnit
+  )
   const reorderLevel = Number(body.reorderLevel)
 
   if (!name) {
@@ -117,10 +128,16 @@ function validateIngredient(body) {
     errors.push('category must be 80 characters or fewer')
   }
 
-  if (!unit) {
-    errors.push('unit is required')
-  } else if (unit.length > 30) {
-    errors.push('unit must be 30 characters or fewer')
+  if (!purchaseUnit) {
+    errors.push('purchaseUnit is required')
+  } else if (purchaseUnit.length > 30) {
+    errors.push('purchaseUnit must be 30 characters or fewer')
+  }
+
+  if (!recipeUnit) {
+    errors.push('recipeUnit is required')
+  } else if (recipeUnit.length > 30) {
+    errors.push('recipeUnit must be 30 characters or fewer')
   }
 
   if (!Number.isFinite(stockQuantity) || stockQuantity < 0) {
@@ -129,6 +146,15 @@ function validateIngredient(body) {
 
   if (!Number.isFinite(currentPrice) || currentPrice < 0) {
     errors.push('currentPrice must be a non-negative number')
+  }
+
+  if (
+    !Number.isFinite(quantityPerPurchaseUnit) ||
+    quantityPerPurchaseUnit <= 0
+  ) {
+    errors.push(
+      'quantityPerPurchaseUnit must be greater than zero'
+    )
   }
 
   if (!Number.isFinite(reorderLevel) || reorderLevel < 0) {
@@ -141,8 +167,10 @@ function validateIngredient(body) {
       name,
       category,
       stockQuantity,
-      unit,
+      purchaseUnit,
       currentPrice,
+      quantityPerPurchaseUnit,
+      recipeUnit,
       reorderLevel,
     },
   }
@@ -189,12 +217,19 @@ function validateRecipe(body) {
       !Number.isInteger(ingredient.ingredientId) ||
       ingredient.ingredientId <= 0
     ) {
-      errors.push('each ingredientId must be a positive whole number')
+      errors.push(
+        'each ingredientId must be a positive whole number'
+      )
       break
     }
 
-    if (!Number.isFinite(ingredient.quantity) || ingredient.quantity <= 0) {
-      errors.push('each ingredient quantity must be greater than zero')
+    if (
+      !Number.isFinite(ingredient.quantity) ||
+      ingredient.quantity <= 0
+    ) {
+      errors.push(
+        'each ingredient quantity must be greater than zero'
+      )
       break
     }
   }
@@ -226,14 +261,18 @@ app.get('/api/ingredients/:id', async (request, response, next) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid ingredient id' })
+    return response.status(400).json({
+      error: 'Invalid ingredient id',
+    })
   }
 
   try {
     const ingredient = await crumbcount.getIngredientById(pool, id)
 
     if (!ingredient) {
-      return response.status(404).json({ error: 'Ingredient not found' })
+      return response.status(404).json({
+        error: 'Ingredient not found',
+      })
     }
 
     response.json(ingredient)
@@ -252,7 +291,11 @@ app.post('/api/ingredients', async (request, response, next) => {
   }
 
   try {
-    const ingredient = await crumbcount.createIngredient(pool, value)
+    const ingredient = await crumbcount.createIngredient(
+      pool,
+      value
+    )
+
     response.status(201).json(ingredient)
   } catch (error) {
     next(error)
@@ -263,7 +306,9 @@ app.put('/api/ingredients/:id', async (request, response, next) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid ingredient id' })
+    return response.status(400).json({
+      error: 'Invalid ingredient id',
+    })
   }
 
   const { errors, value } = validateIngredient(request.body ?? {})
@@ -282,7 +327,9 @@ app.put('/api/ingredients/:id', async (request, response, next) => {
     )
 
     if (!ingredient) {
-      return response.status(404).json({ error: 'Ingredient not found' })
+      return response.status(404).json({
+        error: 'Ingredient not found',
+      })
     }
 
     response.json(ingredient)
@@ -291,14 +338,22 @@ app.put('/api/ingredients/:id', async (request, response, next) => {
   }
 })
 
-app.patch('/api/ingredients/:id/stock', async (request, response, next) => {
+app.patch('/api/ingredients/:id/stock', async (
+  request,
+  response,
+  next
+) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid ingredient id' })
+    return response.status(400).json({
+      error: 'Invalid ingredient id',
+    })
   }
 
-  const stockQuantity = Number(request.body?.stockQuantity)
+  const stockQuantity = Number(
+    request.body?.stockQuantity
+  )
 
   if (!Number.isFinite(stockQuantity) || stockQuantity < 0) {
     return response.status(400).json({
@@ -314,7 +369,9 @@ app.patch('/api/ingredients/:id/stock', async (request, response, next) => {
     )
 
     if (!ingredient) {
-      return response.status(404).json({ error: 'Ingredient not found' })
+      return response.status(404).json({
+        error: 'Ingredient not found',
+      })
     }
 
     response.json(ingredient)
@@ -323,14 +380,22 @@ app.patch('/api/ingredients/:id/stock', async (request, response, next) => {
   }
 })
 
-app.patch('/api/ingredients/:id/price', async (request, response, next) => {
+app.patch('/api/ingredients/:id/price', async (
+  request,
+  response,
+  next
+) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid ingredient id' })
+    return response.status(400).json({
+      error: 'Invalid ingredient id',
+    })
   }
 
-  const currentPrice = Number(request.body?.currentPrice)
+  const currentPrice = Number(
+    request.body?.currentPrice
+  )
 
   if (!Number.isFinite(currentPrice) || currentPrice < 0) {
     return response.status(400).json({
@@ -346,7 +411,9 @@ app.patch('/api/ingredients/:id/price', async (request, response, next) => {
     )
 
     if (!ingredient) {
-      return response.status(404).json({ error: 'Ingredient not found' })
+      return response.status(404).json({
+        error: 'Ingredient not found',
+      })
     }
 
     response.json(ingredient)
@@ -355,18 +422,29 @@ app.patch('/api/ingredients/:id/price', async (request, response, next) => {
   }
 })
 
-app.delete('/api/ingredients/:id', async (request, response, next) => {
+app.delete('/api/ingredients/:id', async (
+  request,
+  response,
+  next
+) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid ingredient id' })
+    return response.status(400).json({
+      error: 'Invalid ingredient id',
+    })
   }
 
   try {
-    const removed = await crumbcount.removeIngredient(pool, id)
+    const removed = await crumbcount.removeIngredient(
+      pool,
+      id
+    )
 
     if (!removed) {
-      return response.status(404).json({ error: 'Ingredient not found' })
+      return response.status(404).json({
+        error: 'Ingredient not found',
+      })
     }
 
     response.status(204).end()
@@ -391,14 +469,18 @@ app.get('/api/recipes/:id', async (request, response, next) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid recipe id' })
+    return response.status(400).json({
+      error: 'Invalid recipe id',
+    })
   }
 
   try {
     const recipe = await crumbcount.getRecipeById(pool, id)
 
     if (!recipe) {
-      return response.status(404).json({ error: 'Recipe not found' })
+      return response.status(404).json({
+        error: 'Recipe not found',
+      })
     }
 
     response.json(recipe)
@@ -417,7 +499,11 @@ app.post('/api/recipes', async (request, response, next) => {
   }
 
   try {
-    const recipe = await crumbcount.createRecipe(pool, value)
+    const recipe = await crumbcount.createRecipe(
+      pool,
+      value
+    )
+
     response.status(201).json(recipe)
   } catch (error) {
     next(error)
@@ -428,7 +514,9 @@ app.put('/api/recipes/:id', async (request, response, next) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid recipe id' })
+    return response.status(400).json({
+      error: 'Invalid recipe id',
+    })
   }
 
   const { errors, value } = validateRecipe(request.body ?? {})
@@ -447,7 +535,9 @@ app.put('/api/recipes/:id', async (request, response, next) => {
     )
 
     if (!recipe) {
-      return response.status(404).json({ error: 'Recipe not found' })
+      return response.status(404).json({
+        error: 'Recipe not found',
+      })
     }
 
     response.json(recipe)
@@ -456,18 +546,29 @@ app.put('/api/recipes/:id', async (request, response, next) => {
   }
 })
 
-app.delete('/api/recipes/:id', async (request, response, next) => {
+app.delete('/api/recipes/:id', async (
+  request,
+  response,
+  next
+) => {
   const id = validateId(request.params.id)
 
   if (!id) {
-    return response.status(400).json({ error: 'Invalid recipe id' })
+    return response.status(400).json({
+      error: 'Invalid recipe id',
+    })
   }
 
   try {
-    const removed = await crumbcount.removeRecipe(pool, id)
+    const removed = await crumbcount.removeRecipe(
+      pool,
+      id
+    )
 
     if (!removed) {
-      return response.status(404).json({ error: 'Recipe not found' })
+      return response.status(404).json({
+        error: 'Recipe not found',
+      })
     }
 
     response.status(204).end()
@@ -481,11 +582,14 @@ app.delete('/api/recipes/:id', async (request, response, next) => {
 // --------------------------------------------------
 
 app.use((request, response) => {
-  response.status(404).json({ error: 'No such route' })
+  response.status(404).json({
+    error: 'No such route',
+  })
 })
 
 app.use((error, request, response, next) => {
   console.error(error)
+
   response.status(500).json({
     error: 'Something went wrong on the server',
   })

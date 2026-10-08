@@ -17,8 +17,13 @@ function formatIngredientForDisplay(item) {
     id: item.id,
     name: item.name,
     category: item.category,
+
+    // Current stock is measured in purchased units.
+    // Example: 1 pack, 2 kg, 3 bottles.
     stock: Number(item.stock_quantity),
-    unit: item.unit,
+    purchaseUnit: item.purchase_unit,
+
+    // Price is the price of one purchased unit.
     price: `₱${Number(item.current_price).toLocaleString(
       'en-PH',
       {
@@ -26,10 +31,21 @@ function formatIngredientForDisplay(item) {
         maximumFractionDigits: 2,
       }
     )}`,
+
+    // Example: 1 pack = 1000 g.
+    quantityPerPurchaseUnit: Number(
+      item.quantity_per_purchase_unit
+    ),
+
+    // Unit used by recipes.
+    recipeUnit: item.recipe_unit,
+
     reorderLevel: Number(item.reorder_level),
+
     updated: item.updated_at
       ? new Date(item.updated_at).toLocaleDateString('en-PH')
       : 'Just now',
+
     updatedAt: item.updated_at,
   }
 }
@@ -321,7 +337,7 @@ function HomePage({
                     <div className="overview-stock-name-row">
                       <strong>{item.name}</strong>
                       <b>
-                        {item.stock} {item.unit}
+                        {item.stock} {item.purchaseUnit}
                       </b>
                     </div>
 
@@ -335,7 +351,7 @@ function HomePage({
 
                     <small>
                       Reorder at {item.reorderLevel ?? '—'}{' '}
-                      {item.unit}
+                      {item.purchaseUnit}
                     </small>
                   </div>
                 </div>
@@ -474,7 +490,7 @@ function InventoryPage({
           name: item.name,
           category: item.category,
           stock: Number(item.stock_quantity),
-          unit: item.unit,
+          purchaseUnit: item.purchase_unit,
           price: `₱${Number(item.current_price).toLocaleString(
             'en-PH',
             {
@@ -482,10 +498,15 @@ function InventoryPage({
               maximumFractionDigits: 2,
             }
           )}`,
+          quantityPerPurchaseUnit: Number(
+            item.quantity_per_purchase_unit
+          ),
+          recipeUnit: item.recipe_unit,
           reorderLevel: Number(item.reorder_level),
           updated: new Date(
             item.updated_at
           ).toLocaleDateString('en-PH'),
+          updatedAt: item.updated_at,
         }))
 
         if (!cancelled) {
@@ -582,10 +603,14 @@ function InventoryPage({
         name: newIngredient.name,
         category: newIngredient.category,
         stockQuantity: Number(newIngredient.stock),
-        unit: newIngredient.unit,
+        purchaseUnit: newIngredient.purchaseUnit,
         currentPrice: Number(
           String(newIngredient.price).replace(/[^0-9.]/g, '')
         ),
+        quantityPerPurchaseUnit: Number(
+          newIngredient.quantityPerPurchaseUnit
+        ),
+        recipeUnit: newIngredient.recipeUnit,
         reorderLevel: Number(newIngredient.reorderLevel),
       })
 
@@ -594,7 +619,7 @@ function InventoryPage({
         name: created.name,
         category: created.category,
         stock: Number(created.stock_quantity),
-        unit: created.unit,
+        purchaseUnit: created.purchase_unit,
         price: `₱${Number(created.current_price).toLocaleString(
           'en-PH',
           {
@@ -602,10 +627,15 @@ function InventoryPage({
             maximumFractionDigits: 2,
           }
         )}`,
+        quantityPerPurchaseUnit: Number(
+          created.quantity_per_purchase_unit
+        ),
+        recipeUnit: created.recipe_unit,
         reorderLevel: Number(created.reorder_level),
         updated: new Date(
           created.updated_at
         ).toLocaleDateString('en-PH'),
+        updatedAt: created.updated_at,
       }
 
       setInventoryItems([
@@ -736,13 +766,17 @@ function InventoryPage({
           name: updatedIngredient.name,
           category: updatedIngredient.category,
           stockQuantity: Number(updatedIngredient.stock),
-          unit: updatedIngredient.unit,
+          purchaseUnit: updatedIngredient.purchaseUnit,
           currentPrice: Number(
             String(updatedIngredient.price).replace(
               /[^0-9.]/g,
               ''
             )
           ),
+          quantityPerPurchaseUnit: Number(
+            updatedIngredient.quantityPerPurchaseUnit
+          ),
+          recipeUnit: updatedIngredient.recipeUnit,
           reorderLevel: Number(
             updatedIngredient.reorderLevel ??
               currentItem.reorderLevel
@@ -755,7 +789,7 @@ function InventoryPage({
         name: updated.name,
         category: updated.category,
         stock: Number(updated.stock_quantity),
-        unit: updated.unit,
+        purchaseUnit: updated.purchase_unit,
         price: `₱${Number(updated.current_price).toLocaleString(
           'en-PH',
           {
@@ -763,10 +797,15 @@ function InventoryPage({
             maximumFractionDigits: 2,
           }
         )}`,
+        quantityPerPurchaseUnit: Number(
+          updated.quantity_per_purchase_unit
+        ),
+        recipeUnit: updated.recipe_unit,
         reorderLevel: Number(updated.reorder_level),
         updated: new Date(
           updated.updated_at
         ).toLocaleDateString('en-PH'),
+        updatedAt: updated.updated_at,
       }
 
       setInventoryItems(
@@ -920,7 +959,7 @@ function InventoryPage({
                 </th>
 
                 <th>
-                  PRICE / UNIT
+                  PRICE / PURCHASE UNIT
                 </th>
 
                 <th>
@@ -963,7 +1002,7 @@ function InventoryPage({
 
                     <td className="table-stock">
                       {item.stock}{' '}
-                      {item.unit}
+                      {item.purchaseUnit}
                     </td>
 
                     <td>
@@ -1103,33 +1142,36 @@ function AddIngredientModal({
   const [stock, setStock] =
     useState('')
 
-  const [unit, setUnit] =
-    useState('kg')
+  const [purchaseUnit, setPurchaseUnit] =
+    useState('pack')
 
   const [price, setPrice] =
     useState('')
 
+  const [quantityPerPurchaseUnit, setQuantityPerPurchaseUnit] =
+    useState('')
+
+  const [recipeUnit, setRecipeUnit] =
+    useState('g')
+
   const [reorderLevel, setReorderLevel] =
     useState('')
 
-  const handleSubmit = (
-    event
-  ) => {
+  const handleSubmit = (event) => {
     event.preventDefault()
 
     if (
       !ingredientName.trim() ||
       !stock ||
       !price ||
+      !quantityPerPurchaseUnit ||
       !reorderLevel
     ) {
       return
     }
 
     const formattedPrice =
-      `₱${Number(
-        price
-      ).toLocaleString(
+      `₱${Number(price).toLocaleString(
         'en-PH',
         {
           minimumFractionDigits: 2,
@@ -1138,24 +1180,16 @@ function AddIngredientModal({
       )}`
 
     const newIngredient = {
-      name:
-        ingredientName.trim(),
-
+      name: ingredientName.trim(),
       category,
-
-      stock:
-        Number(stock),
-
-      unit,
-
-      price:
-        formattedPrice,
-
-      updated:
-        'Just now',
-
-      reorderLevel:
-        Number(reorderLevel),
+      stock: Number(stock),
+      purchaseUnit,
+      price: formattedPrice,
+      quantityPerPurchaseUnit:
+        Number(quantityPerPurchaseUnit),
+      recipeUnit,
+      updated: 'Just now',
+      reorderLevel: Number(reorderLevel),
     }
 
     onAdd(newIngredient)
@@ -1165,26 +1199,19 @@ function AddIngredientModal({
     <div
       className="modal-overlay"
       onMouseDown={(event) => {
-        if (
-          event.target ===
-          event.currentTarget
-        ) {
+        if (event.target === event.currentTarget) {
           onClose()
         }
       }}
     >
-
       <div
         className="ingredient-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-ingredient-title"
       >
-
         <div className="modal-header">
-
           <div>
-
             <p className="modal-eyebrow">
               NEW PANTRY ITEM
             </p>
@@ -1192,7 +1219,6 @@ function AddIngredientModal({
             <h2 id="add-ingredient-title">
               Add an ingredient
             </h2>
-
           </div>
 
           <button
@@ -1203,18 +1229,14 @@ function AddIngredientModal({
           >
             ×
           </button>
-
         </div>
 
         <form
           onSubmit={handleSubmit}
           className="ingredient-form"
         >
-
           <div className="ingredient-top-fields">
-
             <label className="modal-field">
-
               <span>
                 INGREDIENT NAME
                 <b>*</b>
@@ -1225,17 +1247,13 @@ function AddIngredientModal({
                 placeholder="e.g. Cocoa powder"
                 value={ingredientName}
                 onChange={(event) =>
-                  setIngredientName(
-                    event.target.value
-                  )
+                  setIngredientName(event.target.value)
                 }
                 required
               />
-
             </label>
 
             <label className="modal-field">
-
               <span>
                 CATEGORY
                 <b>*</b>
@@ -1244,54 +1262,23 @@ function AddIngredientModal({
               <select
                 value={category}
                 onChange={(event) =>
-                  setCategory(
-                    event.target.value
-                  )
+                  setCategory(event.target.value)
                 }
               >
-
-                <option>
-                  Baking basics
-                </option>
-
-                <option>
-                  Chocolate
-                </option>
-
-                <option>
-                  Dairy
-                </option>
-
-                <option>
-                  Sweeteners
-                </option>
-
-                <option>
-                  Dry Goods
-                </option>
-
-                <option>
-                  Nuts & Spreads
-                </option>
-
-                <option>
-                  Flavorings
-                </option>
-
-                <option>
-                  Other
-                </option>
-
+                <option>Baking basics</option>
+                <option>Chocolate</option>
+                <option>Dairy</option>
+                <option>Sweeteners</option>
+                <option>Dry Goods</option>
+                <option>Nuts & Spreads</option>
+                <option>Flavorings</option>
+                <option>Other</option>
               </select>
-
             </label>
-
           </div>
 
           <div className="ingredient-middle-fields">
-
             <label className="modal-field">
-
               <span>
                 STOCK ON HAND
                 <b>*</b>
@@ -1300,74 +1287,51 @@ function AddIngredientModal({
               <input
                 type="number"
                 min="0"
-                step="0.01"
-                placeholder="0.00"
+                step="0.001"
+                placeholder="0"
                 value={stock}
                 onChange={(event) =>
-                  setStock(
-                    event.target.value
-                  )
+                  setStock(event.target.value)
                 }
                 required
               />
 
+              <small>
+                Number of purchased units currently available.
+              </small>
             </label>
 
             <label className="modal-field">
-
               <span>
-                UNIT
+                PURCHASE UNIT
+                <b>*</b>
               </span>
 
               <select
-                value={unit}
+                value={purchaseUnit}
                 onChange={(event) =>
-                  setUnit(
-                    event.target.value
-                  )
+                  setPurchaseUnit(event.target.value)
                 }
               >
-
-                <option value="kg">
-                  kg
-                </option>
-
-                <option value="g">
-                  g
-                </option>
-
-                <option value="L">
-                  L
-                </option>
-
-                <option value="mL">
-                  mL
-                </option>
-
-                <option value="pcs">
-                  pcs
-                </option>
-
-                <option value="pack">
-                  pack
-                </option>
-
+                <option value="pack">pack</option>
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="L">L</option>
+                <option value="mL">mL</option>
+                <option value="bottle">bottle</option>
+                <option value="piece">piece</option>
+                <option value="dozen">dozen</option>
               </select>
-
             </label>
 
             <label className="modal-field">
-
               <span>
-                PRICE PER UNIT
+                PRICE PER PURCHASE UNIT
                 <b>*</b>
               </span>
 
               <div className="price-input">
-
-                <span>
-                  ₱
-                </span>
+                <span>₱</span>
 
                 <input
                   type="number"
@@ -1376,49 +1340,89 @@ function AddIngredientModal({
                   placeholder="0.00"
                   value={price}
                   onChange={(event) =>
-                    setPrice(
-                      event.target.value
-                    )
+                    setPrice(event.target.value)
                   }
                   required
                 />
-
               </div>
-
             </label>
-
           </div>
 
-          <label className="modal-field reorder-field">
+          <div className="ingredient-middle-fields">
+            <label className="modal-field">
+              <span>
+                CONTENT PER PURCHASE UNIT
+                <b>*</b>
+              </span>
 
-            <span>
-              REORDER WHEN BELOW
-              <b>*</b>
-            </span>
+              <input
+                type="number"
+                min="0.001"
+                step="0.001"
+                placeholder="e.g. 1000"
+                value={quantityPerPurchaseUnit}
+                onChange={(event) =>
+                  setQuantityPerPurchaseUnit(
+                    event.target.value
+                  )
+                }
+                required
+              />
 
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={reorderLevel}
-              onChange={(event) =>
-                setReorderLevel(
-                  event.target.value
-                )
-              }
-              required
-            />
+              <small>
+                Example: 1 pack contains 1000 g.
+              </small>
+            </label>
 
-            <small>
-              This is what powers the low-stock
-              watch list.
-            </small>
+            <label className="modal-field">
+              <span>
+                RECIPE UNIT
+                <b>*</b>
+              </span>
 
-          </label>
+              <select
+                value={recipeUnit}
+                onChange={(event) =>
+                  setRecipeUnit(event.target.value)
+                }
+              >
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+                <option value="mL">mL</option>
+                <option value="L">L</option>
+                <option value="pcs">pcs</option>
+              </select>
+
+              <small>
+                Unit used when entering recipe quantities.
+              </small>
+            </label>
+
+            <label className="modal-field">
+              <span>
+                REORDER WHEN BELOW
+                <b>*</b>
+              </span>
+
+              <input
+                type="number"
+                min="0"
+                step="0.001"
+                placeholder="0"
+                value={reorderLevel}
+                onChange={(event) =>
+                  setReorderLevel(event.target.value)
+                }
+                required
+              />
+
+              <small>
+                Measured in purchase units.
+              </small>
+            </label>
+          </div>
 
           <div className="modal-footer">
-
             <button
               type="button"
               className="modal-cancel"
@@ -1431,19 +1435,12 @@ function AddIngredientModal({
               type="submit"
               className="modal-create"
             >
-              <span>
-                ✓
-              </span>
-
+              <span>✓</span>
               Add ingredient
             </button>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
   )
 }
@@ -1464,38 +1461,41 @@ function EditIngredientModal({
     useState(item.category)
 
   const [stock, setStock] =
-    useState(
-      String(item.stock)
-    )
+    useState(String(item.stock))
 
-  const [unit, setUnit] =
-    useState(item.unit)
+  const [purchaseUnit, setPurchaseUnit] =
+    useState(item.purchaseUnit || 'pack')
 
   const [price, setPrice] =
     useState(
-      item.price.replace(
-        /[^0-9.]/g,
-        ''
-      )
+      item.price.replace(/[^0-9.]/g, '')
     )
 
-  const handleSubmit = (
-    event
-  ) => {
+  const [quantityPerPurchaseUnit, setQuantityPerPurchaseUnit] =
+    useState(
+      String(item.quantityPerPurchaseUnit ?? '')
+    )
+
+  const [recipeUnit, setRecipeUnit] =
+    useState(item.recipeUnit || 'g')
+
+  const [reorderLevel, setReorderLevel] =
+    useState(String(item.reorderLevel ?? ''))
+
+  const handleSubmit = (event) => {
     event.preventDefault()
 
     if (
       !ingredientName.trim() ||
       !stock ||
-      !price
+      !price ||
+      !quantityPerPurchaseUnit
     ) {
       return
     }
 
     const formattedPrice =
-      `₱${Number(
-        price
-      ).toLocaleString(
+      `₱${Number(price).toLocaleString(
         'en-PH',
         {
           minimumFractionDigits: 2,
@@ -1504,21 +1504,16 @@ function EditIngredientModal({
       )}`
 
     onSave({
-      originalName:
-        item.name,
-
-      name:
-        ingredientName.trim(),
-
+      originalName: item.name,
+      name: ingredientName.trim(),
       category,
-
-      stock:
-        Number(stock),
-
-      unit,
-
-      price:
-        formattedPrice,
+      stock: Number(stock),
+      purchaseUnit,
+      price: formattedPrice,
+      quantityPerPurchaseUnit:
+        Number(quantityPerPurchaseUnit),
+      recipeUnit,
+      reorderLevel: Number(reorderLevel || 0),
     })
   }
 
@@ -1526,26 +1521,19 @@ function EditIngredientModal({
     <div
       className="modal-overlay"
       onMouseDown={(event) => {
-        if (
-          event.target ===
-          event.currentTarget
-        ) {
+        if (event.target === event.currentTarget) {
           onClose()
         }
       }}
     >
-
       <div
         className="ingredient-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-ingredient-title"
       >
-
         <div className="modal-header">
-
           <div>
-
             <p className="modal-eyebrow">
               UPDATE PANTRY ITEM
             </p>
@@ -1553,7 +1541,6 @@ function EditIngredientModal({
             <h2 id="edit-ingredient-title">
               Edit ingredient
             </h2>
-
           </div>
 
           <button
@@ -1564,18 +1551,14 @@ function EditIngredientModal({
           >
             ×
           </button>
-
         </div>
 
         <form
           onSubmit={handleSubmit}
           className="ingredient-form"
         >
-
           <div className="ingredient-top-fields">
-
             <label className="modal-field">
-
               <span>
                 INGREDIENT NAME
                 <b>*</b>
@@ -1585,17 +1568,13 @@ function EditIngredientModal({
                 type="text"
                 value={ingredientName}
                 onChange={(event) =>
-                  setIngredientName(
-                    event.target.value
-                  )
+                  setIngredientName(event.target.value)
                 }
                 required
               />
-
             </label>
 
             <label className="modal-field">
-
               <span>
                 CATEGORY
                 <b>*</b>
@@ -1604,54 +1583,23 @@ function EditIngredientModal({
               <select
                 value={category}
                 onChange={(event) =>
-                  setCategory(
-                    event.target.value
-                  )
+                  setCategory(event.target.value)
                 }
               >
-
-                <option>
-                  Baking basics
-                </option>
-
-                <option>
-                  Chocolate
-                </option>
-
-                <option>
-                  Dairy
-                </option>
-
-                <option>
-                  Sweeteners
-                </option>
-
-                <option>
-                  Dry Goods
-                </option>
-
-                <option>
-                  Nuts & Spreads
-                </option>
-
-                <option>
-                  Flavorings
-                </option>
-
-                <option>
-                  Other
-                </option>
-
+                <option>Baking basics</option>
+                <option>Chocolate</option>
+                <option>Dairy</option>
+                <option>Sweeteners</option>
+                <option>Dry Goods</option>
+                <option>Nuts & Spreads</option>
+                <option>Flavorings</option>
+                <option>Other</option>
               </select>
-
             </label>
-
           </div>
 
           <div className="ingredient-middle-fields">
-
             <label className="modal-field">
-
               <span>
                 STOCK ON HAND
                 <b>*</b>
@@ -1660,73 +1608,50 @@ function EditIngredientModal({
               <input
                 type="number"
                 min="0"
-                step="0.01"
+                step="0.001"
                 value={stock}
                 onChange={(event) =>
-                  setStock(
-                    event.target.value
-                  )
+                  setStock(event.target.value)
                 }
                 required
               />
 
+              <small>
+                Number of purchased units currently available.
+              </small>
             </label>
 
             <label className="modal-field">
-
               <span>
-                UNIT
+                PURCHASE UNIT
+                <b>*</b>
               </span>
 
               <select
-                value={unit}
+                value={purchaseUnit}
                 onChange={(event) =>
-                  setUnit(
-                    event.target.value
-                  )
+                  setPurchaseUnit(event.target.value)
                 }
               >
-
-                <option value="kg">
-                  kg
-                </option>
-
-                <option value="g">
-                  g
-                </option>
-
-                <option value="L">
-                  L
-                </option>
-
-                <option value="mL">
-                  mL
-                </option>
-
-                <option value="pcs">
-                  pcs
-                </option>
-
-                <option value="pack">
-                  pack
-                </option>
-
+                <option value="pack">pack</option>
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="L">L</option>
+                <option value="mL">mL</option>
+                <option value="bottle">bottle</option>
+                <option value="piece">piece</option>
+                <option value="dozen">dozen</option>
               </select>
-
             </label>
 
             <label className="modal-field">
-
               <span>
-                PRICE PER UNIT
+                PRICE PER PURCHASE UNIT
                 <b>*</b>
               </span>
 
               <div className="price-input">
-
-                <span>
-                  ₱
-                </span>
+                <span>₱</span>
 
                 <input
                   type="number"
@@ -1734,21 +1659,87 @@ function EditIngredientModal({
                   step="0.01"
                   value={price}
                   onChange={(event) =>
-                    setPrice(
-                      event.target.value
-                    )
+                    setPrice(event.target.value)
                   }
                   required
                 />
-
               </div>
+            </label>
+          </div>
 
+          <div className="ingredient-middle-fields">
+            <label className="modal-field">
+              <span>
+                CONTENT PER PURCHASE UNIT
+                <b>*</b>
+              </span>
+
+              <input
+                type="number"
+                min="0.001"
+                step="0.001"
+                value={quantityPerPurchaseUnit}
+                onChange={(event) =>
+                  setQuantityPerPurchaseUnit(
+                    event.target.value
+                  )
+                }
+                required
+              />
+
+              <small>
+                Example: 1 pack contains 1000 g.
+              </small>
             </label>
 
+            <label className="modal-field">
+              <span>
+                RECIPE UNIT
+                <b>*</b>
+              </span>
+
+              <select
+                value={recipeUnit}
+                onChange={(event) =>
+                  setRecipeUnit(event.target.value)
+                }
+              >
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+                <option value="mL">mL</option>
+                <option value="L">L</option>
+                <option value="pcs">pcs</option>
+              </select>
+
+              <small>
+                Unit used when entering recipe quantities.
+              </small>
+            </label>
+
+            <label className="modal-field">
+              <span>
+                REORDER WHEN BELOW
+                <b>*</b>
+              </span>
+
+              <input
+                type="number"
+                min="0"
+                step="0.001"
+                value={reorderLevel}
+                onChange={(event) =>
+                  setReorderLevel(event.target.value)
+                }
+                required
+              />
+
+              <small>
+                Measured in purchase units.
+              </small>
+            </label>
           </div>
 
           <div className="modal-footer">
-
             <button
               type="button"
               className="modal-cancel"
@@ -1761,19 +1752,12 @@ function EditIngredientModal({
               type="submit"
               className="modal-create"
             >
-              <span>
-                ✓
-              </span>
-
+              <span>✓</span>
               Save changes
             </button>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
   )
 }
@@ -2048,26 +2032,53 @@ function RecipeCostingPage({
   )
 }
 
+function getIngredientCostPerRecipeUnit(item) {
+  const currentPrice = Number(item.currentPrice) || 0
+  const quantityPerPurchaseUnit =
+    Number(item.quantityPerPurchaseUnit) || 0
+
+  if (quantityPerPurchaseUnit <= 0) {
+    return 0
+  }
+
+  return currentPrice / quantityPerPurchaseUnit
+}
+
+function calculateRecipeIngredientCost(item) {
+  const quantity = Number(item.quantity) || 0
+  const costPerRecipeUnit =
+    getIngredientCostPerRecipeUnit(item)
+
+  return quantity * costPerRecipeUnit
+}
+
 function formatRecipeForDisplay(recipe) {
   const ingredients = Array.isArray(recipe.ingredients)
     ? recipe.ingredients
     : []
 
-  const batchCost = ingredients.reduce((total, item) => {
-    const quantity = Number(item.quantity) || 0
-    const currentPrice = Number(item.currentPrice) || 0
-
-    return total + quantity * currentPrice
-  }, 0)
+  const batchCost = ingredients.reduce(
+    (total, item) =>
+      total + calculateRecipeIngredientCost(item),
+    0
+  )
 
   const yieldAmount = Number(recipe.yield_amount) || 0
   const sellingPrice = Number(recipe.selling_price) || 0
+
   const costPerPiece =
-    yieldAmount > 0 ? batchCost / yieldAmount : 0
-  const profitPerPiece = sellingPrice - costPerPiece
+    yieldAmount > 0
+      ? batchCost / yieldAmount
+      : 0
+
+  const profitPerPiece =
+    sellingPrice - costPerPiece
+
   const margin =
     sellingPrice > 0
-      ? Math.round((profitPerPiece / sellingPrice) * 100)
+      ? Math.round(
+          (profitPerPiece / sellingPrice) * 100
+        )
       : 0
 
   return {
@@ -2079,10 +2090,17 @@ function formatRecipeForDisplay(recipe) {
     costPerPiece: `₱${costPerPiece.toFixed(2)}`,
     sellingPrice: `₱${sellingPrice.toFixed(2)}`,
     margin: `${margin}%`,
+
     rawIngredients: ingredients.map((item) => ({
       ingredientId: item.ingredientId,
       quantity: item.quantity,
+      purchaseUnit: item.purchaseUnit,
+      currentPrice: Number(item.currentPrice) || 0,
+      quantityPerPurchaseUnit:
+        Number(item.quantityPerPurchaseUnit) || 0,
+      recipeUnit: item.recipeUnit,
     })),
+
     updated: recipe.updated_at
       ? new Date(recipe.updated_at).toLocaleDateString('en-PH')
       : 'Just now',
@@ -2099,79 +2117,184 @@ function EditCostingModal({
   onClose,
   onUpdate,
 }) {
-  const [productName, setProductName] = useState(recipe.name)
-  const [yieldAmount, setYieldAmount] = useState(String(recipe.yield))
-  const [sellingPrice, setSellingPrice] = useState(
-    String(recipe.sellingPrice).replace(/[^0-9.]/g, '')
-  )
+  const [productName, setProductName] =
+    useState(recipe.name)
 
-  const sourceIngredients = Array.isArray(recipe.rawIngredients)
-    ? recipe.rawIngredients
-    : []
+  const [yieldAmount, setYieldAmount] =
+    useState(String(recipe.yield))
 
-  const [ingredients, setIngredients] = useState(
-    sourceIngredients.length
-      ? sourceIngredients.map((item) => ({
-          ingredientId: String(item.ingredientId),
-          quantity: String(item.quantity),
-        }))
-      : [{ ingredientId: String(inventoryItems[0]?.id || ''), quantity: '0' }]
-  )
+  const [sellingPrice, setSellingPrice] =
+    useState(
+      String(recipe.sellingPrice).replace(
+        /[^0-9.]/g,
+        ''
+      )
+    )
+
+  const sourceIngredients =
+    Array.isArray(recipe.rawIngredients)
+      ? recipe.rawIngredients
+      : []
+
+  const [ingredients, setIngredients] =
+    useState(
+      sourceIngredients.length
+        ? sourceIngredients.map((item) => ({
+            ingredientId: String(
+              item.ingredientId
+            ),
+            quantity: String(
+              item.quantity
+            ),
+          }))
+        : [
+            {
+              ingredientId: String(
+                inventoryItems[0]?.id || ''
+              ),
+              quantity: '0',
+            },
+          ]
+    )
 
   const addIngredient = () => {
     setIngredients([
       ...ingredients,
-      { ingredientId: String(inventoryItems[0]?.id || ''), quantity: '0' },
+      {
+        ingredientId: String(
+          inventoryItems[0]?.id || ''
+        ),
+        quantity: '0',
+      },
     ])
   }
 
   const removeIngredient = (index) => {
-    if (ingredients.length === 1) return
-    setIngredients(ingredients.filter((_, itemIndex) => itemIndex !== index))
-  }
+    if (ingredients.length === 1) {
+      return
+    }
 
-  const updateIngredient = (index, field, value) => {
     setIngredients(
-      ingredients.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item
+      ingredients.filter(
+        (_, itemIndex) =>
+          itemIndex !== index
       )
     )
   }
 
-  const batchCost = ingredients.reduce((total, item) => {
-    const inventoryItem = inventoryItems.find(
-      (ingredient) => String(ingredient.id) === String(item.ingredientId)
+  const updateIngredient = (
+    index,
+    field,
+    value
+  ) => {
+    setIngredients(
+      ingredients.map(
+        (item, itemIndex) =>
+          itemIndex === index
+            ? {
+                ...item,
+                [field]: value,
+              }
+            : item
+      )
     )
-    if (!inventoryItem) return total
+  }
 
-    const price = Number(
-      String(inventoryItem.price).replace(/[^0-9.]/g, '')
-    ) || 0
-    const quantity = Number(item.quantity) || 0
-    return total + price * quantity
-  }, 0)
+  const getSelectedInventoryItem = (item) =>
+    inventoryItems.find(
+      (ingredient) =>
+        String(ingredient.id) ===
+        String(item.ingredientId)
+    )
 
-  const numericYield = Number(yieldAmount) || 0
-  const numericSellingPrice = Number(sellingPrice) || 0
-  const costPerPiece = numericYield > 0 ? batchCost / numericYield : 0
-  const profitPerPiece = numericSellingPrice - costPerPiece
+  const batchCost = ingredients.reduce(
+    (total, item) => {
+      const inventoryItem =
+        getSelectedInventoryItem(item)
+
+      if (!inventoryItem) {
+        return total
+      }
+
+      const currentPrice = Number(
+        String(inventoryItem.price).replace(
+          /[^0-9.]/g,
+          ''
+        )
+      ) || 0
+
+      const quantityPerPurchaseUnit =
+        Number(
+          inventoryItem.quantityPerPurchaseUnit
+        ) || 0
+
+      const quantity =
+        Number(item.quantity) || 0
+
+      if (
+        quantityPerPurchaseUnit <= 0
+      ) {
+        return total
+      }
+
+      return (
+        total +
+        currentPrice /
+          quantityPerPurchaseUnit *
+          quantity
+      )
+    },
+    0
+  )
+
+  const numericYield =
+    Number(yieldAmount) || 0
+
+  const numericSellingPrice =
+    Number(sellingPrice) || 0
+
+  const costPerPiece =
+    numericYield > 0
+      ? batchCost / numericYield
+      : 0
+
+  const profitPerPiece =
+    numericSellingPrice -
+    costPerPiece
 
   const handleSubmit = (event) => {
     event.preventDefault()
 
     const recipeInput = {
-      productName: productName.trim(),
-      yieldAmount: numericYield,
-      sellingPrice: numericSellingPrice,
-      ingredients: ingredients
-        .filter((item) => item.ingredientId && Number(item.quantity) > 0)
-        .map((item) => ({
-          ingredientId: Number(item.ingredientId),
-          quantity: Number(item.quantity),
-        })),
+      productName:
+        productName.trim(),
+
+      yieldAmount:
+        numericYield,
+
+      sellingPrice:
+        numericSellingPrice,
+
+      ingredients:
+        ingredients
+          .filter(
+            (item) =>
+              item.ingredientId &&
+              Number(item.quantity) > 0
+          )
+          .map((item) => ({
+            ingredientId:
+              Number(item.ingredientId),
+            quantity:
+              Number(item.quantity),
+          })),
     }
 
-    if (!recipeInput.productName || !recipeInput.yieldAmount || !recipeInput.ingredients.length) {
+    if (
+      !recipeInput.productName ||
+      !recipeInput.yieldAmount ||
+      !recipeInput.ingredients.length
+    ) {
       return
     }
 
@@ -2182,7 +2305,12 @@ function EditCostingModal({
     <div
       className="modal-overlay"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose()
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose()
+        }
       }}
     >
       <div
@@ -2193,8 +2321,13 @@ function EditCostingModal({
       >
         <div className="modal-header">
           <div>
-            <p className="modal-eyebrow">UPDATE THE MATH</p>
-            <h2 id="edit-costing-title">Edit recipe costing</h2>
+            <p className="modal-eyebrow">
+              UPDATE THE MATH
+            </p>
+
+            <h2 id="edit-costing-title">
+              Edit recipe costing
+            </h2>
           </div>
 
           <button
@@ -2207,39 +2340,67 @@ function EditCostingModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-body">
+        <form
+          onSubmit={handleSubmit}
+          className="modal-body"
+        >
           <div className="modal-product-fields">
             <label className="modal-field">
-              <span>PRODUCT NAME <b>*</b></span>
+              <span>
+                PRODUCT NAME
+                <b>*</b>
+              </span>
+
               <input
                 type="text"
                 value={productName}
-                onChange={(event) => setProductName(event.target.value)}
+                onChange={(event) =>
+                  setProductName(
+                    event.target.value
+                  )
+                }
                 required
               />
             </label>
 
             <label className="modal-field">
-              <span>PIECES PER BATCH <b>*</b></span>
+              <span>
+                PIECES PER BATCH
+                <b>*</b>
+              </span>
+
               <input
                 type="number"
                 min="1"
                 value={yieldAmount}
-                onChange={(event) => setYieldAmount(event.target.value)}
+                onChange={(event) =>
+                  setYieldAmount(
+                    event.target.value
+                  )
+                }
                 required
               />
             </label>
 
             <label className="modal-field">
-              <span>SELLING PRICE / PIECE <b>*</b></span>
+              <span>
+                SELLING PRICE / PIECE
+                <b>*</b>
+              </span>
+
               <div className="price-input">
                 <span>₱</span>
+
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={sellingPrice}
-                  onChange={(event) => setSellingPrice(event.target.value)}
+                  onChange={(event) =>
+                    setSellingPrice(
+                      event.target.value
+                    )
+                  }
                   required
                 />
               </div>
@@ -2249,8 +2410,14 @@ function EditCostingModal({
           <div className="recipe-ingredients">
             <div className="recipe-heading">
               <div>
-                <h3>RECIPE INGREDIENTS</h3>
-                <p>Use the same unit as your inventory item.</p>
+                <h3>
+                  RECIPE INGREDIENTS
+                </h3>
+
+                <p>
+                  Enter the quantity using
+                  the recipe unit shown below.
+                </p>
               </div>
 
               <button
@@ -2263,67 +2430,126 @@ function EditCostingModal({
             </div>
 
             <div className="recipe-table">
-              {ingredients.map((item, index) => (
-                <div className="recipe-row" key={index}>
-                  <select
-                    value={item.ingredientId}
-                    onChange={(event) =>
-                      updateIngredient(index, 'ingredientId', event.target.value)
-                    }
-                  >
-                    {inventoryItems.map((inventoryItem) => (
-                      <option
-                        value={inventoryItem.id}
-                        key={inventoryItem.id}
+              {ingredients.map(
+                (item, index) => {
+                  const inventoryItem =
+                    getSelectedInventoryItem(
+                      item
+                    )
+
+                  return (
+                    <div
+                      className="recipe-row"
+                      key={index}
+                    >
+                      <select
+                        value={
+                          item.ingredientId
+                        }
+                        onChange={(event) =>
+                          updateIngredient(
+                            index,
+                            'ingredientId',
+                            event.target.value
+                          )
+                        }
                       >
-                        {inventoryItem.name}
-                      </option>
-                    ))}
-                  </select>
+                        {inventoryItems.map(
+                          (inventoryItem) => (
+                            <option
+                              value={
+                                inventoryItem.id
+                              }
+                              key={
+                                inventoryItem.id
+                              }
+                            >
+                              {
+                                inventoryItem.name
+                              }
+                            </option>
+                          )
+                        )}
+                      </select>
 
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={item.quantity}
-                    onChange={(event) =>
-                      updateIngredient(index, 'quantity', event.target.value)
-                    }
-                  />
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        value={
+                          item.quantity
+                        }
+                        onChange={(event) =>
+                          updateIngredient(
+                            index,
+                            'quantity',
+                            event.target.value
+                          )
+                        }
+                      />
 
-                  <button
-                    type="button"
-                    className="remove-ingredient"
-                    onClick={() => removeIngredient(index)}
-                    aria-label="Remove ingredient"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+                      <span className="recipe-unit">
+                        {inventoryItem?.recipeUnit ||
+                          'unit'}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="remove-ingredient"
+                        onClick={() =>
+                          removeIngredient(
+                            index
+                          )
+                        }
+                        aria-label="Remove ingredient"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )
+                }
+              )}
             </div>
           </div>
 
           <div className="cost-summary">
             <div>
               <span>BATCH COST</span>
-              <strong>₱{batchCost.toFixed(2)}</strong>
+              <strong>
+                ₱{batchCost.toFixed(2)}
+              </strong>
             </div>
+
             <div>
               <span>COST / PIECE</span>
-              <strong>₱{costPerPiece.toFixed(2)}</strong>
+              <strong>
+                ₱{costPerPiece.toFixed(2)}
+              </strong>
             </div>
+
             <div>
-              <span>EST. PROFIT / PIECE</span>
-              <strong>₱{profitPerPiece.toFixed(2)}</strong>
+              <span>
+                EST. PROFIT / PIECE
+              </span>
+              <strong>
+                ₱{profitPerPiece.toFixed(2)}
+              </strong>
             </div>
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="modal-cancel" onClick={onClose}>
+            <button
+              type="button"
+              className="modal-cancel"
+              onClick={onClose}
+            >
               Cancel
             </button>
-            <button type="submit" className="modal-create">
+
+            <button
+              type="submit"
+              className="modal-create"
+            >
               <span>✓</span>
               Save changes
             </button>
@@ -2355,9 +2581,8 @@ function CreateCostingModal({
   const [ingredients, setIngredients] =
     useState([
       {
-        ingredient:
-          inventoryItems[0]?.name ||
-          '',
+        ingredientId:
+          String(inventoryItems[0]?.id || ''),
         quantity: '0',
       },
     ])
@@ -2365,22 +2590,16 @@ function CreateCostingModal({
   const addIngredient = () => {
     setIngredients([
       ...ingredients,
-
       {
-        ingredient:
-          inventoryItems[0]?.name ||
-          '',
+        ingredientId:
+          String(inventoryItems[0]?.id || ''),
         quantity: '0',
       },
     ])
   }
 
-  const removeIngredient = (
-    index
-  ) => {
-    if (
-      ingredients.length === 1
-    ) {
+  const removeIngredient = (index) => {
+    if (ingredients.length === 1) {
       return
     }
 
@@ -2411,16 +2630,18 @@ function CreateCostingModal({
     )
   }
 
+  const getSelectedInventoryItem = (item) =>
+    inventoryItems.find(
+      (ingredient) =>
+        String(ingredient.id) ===
+        String(item.ingredientId)
+    )
+
   const calculateCost = () => {
     return ingredients.reduce(
       (total, item) => {
-
         const inventoryItem =
-          inventoryItems.find(
-            (ingredient) =>
-              ingredient.name ===
-              item.ingredient
-          )
+          getSelectedInventoryItem(item)
 
         if (!inventoryItem) {
           return total
@@ -2432,16 +2653,26 @@ function CreateCostingModal({
               /[^0-9.]/g,
               ''
             )
-          )
+          ) || 0
+
+        const quantityPerPurchaseUnit =
+          Number(
+            inventoryItem.quantityPerPurchaseUnit
+          ) || 0
 
         const quantity =
-          Number(
-            item.quantity
-          ) || 0
+          Number(item.quantity) || 0
+
+        if (
+          quantityPerPurchaseUnit <= 0
+        ) {
+          return total
+        }
 
         return (
           total +
-          numericPrice *
+          numericPrice /
+            quantityPerPurchaseUnit *
             quantity
         )
       },
@@ -2467,19 +2698,8 @@ function CreateCostingModal({
     ) || 0
 
   const profitPerPiece =
-    numericSellingPrice > 0
-      ? numericSellingPrice -
-        costPerPiece
-      : 0
-
-  const margin =
-    numericSellingPrice > 0
-      ? Math.round(
-          (profitPerPiece /
-            numericSellingPrice) *
-            100
-        )
-      : 0
+    numericSellingPrice -
+    costPerPiece
 
   const handleSubmit = (
     event
@@ -2495,25 +2715,37 @@ function CreateCostingModal({
     }
 
     const recipeInput = {
-      productName: productName.trim(),
-      yieldAmount: Number(yieldAmount),
-      sellingPrice: numericSellingPrice,
-      ingredients: ingredients
-        .filter((item) => item.ingredient && Number(item.quantity) > 0)
-        .map((item) => {
-          const inventoryItem = inventoryItems.find(
-            (ingredient) => ingredient.name === item.ingredient
-          )
+      productName:
+        productName.trim(),
 
-          return {
-            ingredientId: inventoryItem?.id,
-            quantity: Number(item.quantity),
-          }
-        })
-        .filter((item) => item.ingredientId),
+      yieldAmount:
+        Number(yieldAmount),
+
+      sellingPrice:
+        numericSellingPrice,
+
+      ingredients:
+        ingredients
+          .filter(
+            (item) =>
+              item.ingredientId &&
+              Number(item.quantity) > 0
+          )
+          .map((item) => ({
+            ingredientId:
+              Number(
+                item.ingredientId
+              ),
+            quantity:
+              Number(
+                item.quantity
+              ),
+          })),
     }
 
-    if (!recipeInput.ingredients.length) {
+    if (
+      !recipeInput.ingredients.length
+    ) {
       return
     }
 
@@ -2524,28 +2756,22 @@ function CreateCostingModal({
     <div
       className="modal-overlay"
       onMouseDown={(event) => {
-
         if (
           event.target ===
           event.currentTarget
         ) {
           onClose()
         }
-
       }}
     >
-
       <div
         className="costing-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-costing-title"
       >
-
         <div className="modal-header">
-
           <div>
-
             <p className="modal-eyebrow">
               MAKE THE MATH USEFUL
             </p>
@@ -2553,7 +2779,6 @@ function CreateCostingModal({
             <h2 id="create-costing-title">
               Create a recipe costing
             </h2>
-
           </div>
 
           <button
@@ -2564,18 +2789,14 @@ function CreateCostingModal({
           >
             ×
           </button>
-
         </div>
 
         <form
           onSubmit={handleSubmit}
           className="modal-body"
         >
-
           <div className="modal-product-fields">
-
             <label className="modal-field">
-
               <span>
                 PRODUCT NAME
                 <b>*</b>
@@ -2592,11 +2813,9 @@ function CreateCostingModal({
                 }
                 required
               />
-
             </label>
 
             <label className="modal-field">
-
               <span>
                 PIECES PER BATCH
                 <b>*</b>
@@ -2613,21 +2832,16 @@ function CreateCostingModal({
                 }
                 required
               />
-
             </label>
 
             <label className="modal-field">
-
               <span>
                 SELLING PRICE / PIECE
                 <b>*</b>
               </span>
 
               <div className="price-input">
-
-                <span>
-                  ₱
-                </span>
+                <span>₱</span>
 
                 <input
                   type="number"
@@ -2641,28 +2855,21 @@ function CreateCostingModal({
                   }
                   required
                 />
-
               </div>
-
             </label>
-
           </div>
 
           <div className="recipe-ingredients">
-
             <div className="recipe-heading">
-
               <div>
-
                 <h3>
                   RECIPE INGREDIENTS
                 </h3>
 
                 <p>
-                  Use the same unit as your
-                  inventory item.
+                  Enter the quantity using
+                  the recipe unit shown below.
                 </p>
-
               </div>
 
               <button
@@ -2674,100 +2881,95 @@ function CreateCostingModal({
               >
                 + Add row
               </button>
-
             </div>
 
             <div className="recipe-table">
-
               {ingredients.map(
-                (
-                  item,
-                  index
-                ) => (
+                (item, index) => {
+                  const inventoryItem =
+                    getSelectedInventoryItem(
+                      item
+                    )
 
-                  <div
-                    className="recipe-row"
-                    key={index}
-                  >
-
-                    <select
-                      value={
-                        item.ingredient
-                      }
-                      onChange={(event) =>
-                        updateIngredient(
-                          index,
-                          'ingredient',
-                          event.target.value
-                        )
-                      }
+                  return (
+                    <div
+                      className="recipe-row"
+                      key={index}
                     >
+                      <select
+                        value={
+                          item.ingredientId
+                        }
+                        onChange={(event) =>
+                          updateIngredient(
+                            index,
+                            'ingredientId',
+                            event.target.value
+                          )
+                        }
+                      >
+                        {inventoryItems.map(
+                          (
+                            inventoryItem
+                          ) => (
+                            <option
+                              value={
+                                inventoryItem.id
+                              }
+                              key={
+                                inventoryItem.id
+                              }
+                            >
+                              {
+                                inventoryItem.name
+                              }
+                            </option>
+                          )
+                        )}
+                      </select>
 
-                      {inventoryItems.map(
-                        (
-                          inventoryItem
-                        ) => (
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        value={
+                          item.quantity
+                        }
+                        onChange={(event) =>
+                          updateIngredient(
+                            index,
+                            'quantity',
+                            event.target.value
+                          )
+                        }
+                      />
 
-                          <option
-                            value={
-                              inventoryItem.name
-                            }
-                            key={
-                              inventoryItem.name
-                            }
-                          >
-                            {
-                              inventoryItem.name
-                            }
-                          </option>
+                      <span className="recipe-unit">
+                        {inventoryItem?.recipeUnit ||
+                          'unit'}
+                      </span>
 
-                        )
-                      )}
-
-                    </select>
-
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={
-                        item.quantity
-                      }
-                      onChange={(event) =>
-                        updateIngredient(
-                          index,
-                          'quantity',
-                          event.target.value
-                        )
-                      }
-                    />
-
-                    <button
-                      type="button"
-                      className="remove-ingredient"
-                      onClick={() =>
-                        removeIngredient(
-                          index
-                        )
-                      }
-                      aria-label="Remove ingredient"
-                    >
-                      ×
-                    </button>
-
-                  </div>
-
-                )
+                      <button
+                        type="button"
+                        className="remove-ingredient"
+                        onClick={() =>
+                          removeIngredient(
+                            index
+                          )
+                        }
+                        aria-label="Remove ingredient"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )
+                }
               )}
-
             </div>
-
           </div>
 
           <div className="cost-summary">
-
             <div>
-
               <span>
                 BATCH COST
               </span>
@@ -2777,11 +2979,9 @@ function CreateCostingModal({
                   2
                 )}
               </strong>
-
             </div>
 
             <div>
-
               <span>
                 COST / PIECE
               </span>
@@ -2791,11 +2991,9 @@ function CreateCostingModal({
                   2
                 )}
               </strong>
-
             </div>
 
             <div>
-
               <span>
                 EST. PROFIT / PIECE
               </span>
@@ -2805,13 +3003,10 @@ function CreateCostingModal({
                   2
                 )}
               </strong>
-
             </div>
-
           </div>
 
           <div className="modal-footer">
-
             <button
               type="button"
               className="modal-cancel"
@@ -2830,13 +3025,9 @@ function CreateCostingModal({
 
               Create costing
             </button>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
   )
 }

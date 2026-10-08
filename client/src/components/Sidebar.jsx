@@ -8,7 +8,13 @@ export default function Sidebar({ activePage, onNavigate }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="brand-mark">B9</div>
+        <div className="brand-mark">
+          <img
+            src="/bakedby912-logo.jpg"
+            alt="BakedBy912 logo"
+            className="brand-logo"
+          />
+        </div>
 
         <div>
           <div className="brand-name">crumbcount</div>

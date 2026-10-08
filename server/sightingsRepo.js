@@ -9,8 +9,10 @@ export async function getAllIngredients(pool) {
        name,
        category,
        stock_quantity,
-       unit,
+       purchase_unit,
        current_price,
+       quantity_per_purchase_unit,
+       recipe_unit,
        reorder_level,
        created_at,
        updated_at
@@ -28,8 +30,10 @@ export async function getIngredientById(pool, id) {
        name,
        category,
        stock_quantity,
-       unit,
+       purchase_unit,
        current_price,
+       quantity_per_purchase_unit,
+       recipe_unit,
        reorder_level,
        created_at,
        updated_at
@@ -43,19 +47,39 @@ export async function getIngredientById(pool, id) {
 
 export async function createIngredient(
   pool,
-  { name, category, stockQuantity, unit, currentPrice, reorderLevel }
+  {
+    name,
+    category,
+    stockQuantity,
+    purchaseUnit,
+    currentPrice,
+    quantityPerPurchaseUnit,
+    recipeUnit,
+    reorderLevel,
+  }
 ) {
   const result = await pool.query(
     `INSERT INTO ingredients
-      (name, category, stock_quantity, unit, current_price, reorder_level)
-     VALUES ($1, $2, $3, $4, $5, $6)
+      (
+        name,
+        category,
+        stock_quantity,
+        purchase_unit,
+        current_price,
+        quantity_per_purchase_unit,
+        recipe_unit,
+        reorder_level
+      )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
     [
       name,
       category,
       stockQuantity,
-      unit,
+      purchaseUnit,
       currentPrice,
+      quantityPerPurchaseUnit,
+      recipeUnit,
       reorderLevel,
     ]
   )
@@ -66,7 +90,16 @@ export async function createIngredient(
 export async function updateIngredient(
   pool,
   id,
-  { name, category, stockQuantity, unit, currentPrice, reorderLevel }
+  {
+    name,
+    category,
+    stockQuantity,
+    purchaseUnit,
+    currentPrice,
+    quantityPerPurchaseUnit,
+    recipeUnit,
+    reorderLevel,
+  }
 ) {
   const result = await pool.query(
     `UPDATE ingredients
@@ -74,18 +107,22 @@ export async function updateIngredient(
        name = $1,
        category = $2,
        stock_quantity = $3,
-       unit = $4,
+       purchase_unit = $4,
        current_price = $5,
-       reorder_level = $6,
+       quantity_per_purchase_unit = $6,
+       recipe_unit = $7,
+       reorder_level = $8,
        updated_at = now()
-     WHERE id = $7
+     WHERE id = $9
      RETURNING *`,
     [
       name,
       category,
       stockQuantity,
-      unit,
+      purchaseUnit,
       currentPrice,
+      quantityPerPurchaseUnit,
+      recipeUnit,
       reorderLevel,
       id,
     ]
@@ -149,8 +186,10 @@ export async function getAllRecipes(pool) {
              'ingredientId', i.id,
              'ingredientName', i.name,
              'quantity', ri.quantity,
-             'unit', i.unit,
-             'currentPrice', i.current_price
+             'purchaseUnit', i.purchase_unit,
+             'currentPrice', i.current_price,
+             'quantityPerPurchaseUnit', i.quantity_per_purchase_unit,
+             'recipeUnit', i.recipe_unit
            )
            ORDER BY i.name
          ) FILTER (WHERE i.id IS NOT NULL),
@@ -183,8 +222,10 @@ export async function getRecipeById(pool, id) {
              'ingredientId', i.id,
              'ingredientName', i.name,
              'quantity', ri.quantity,
-             'unit', i.unit,
-             'currentPrice', i.current_price
+             'purchaseUnit', i.purchase_unit,
+             'currentPrice', i.current_price,
+             'quantityPerPurchaseUnit', i.quantity_per_purchase_unit,
+             'recipeUnit', i.recipe_unit
            )
            ORDER BY i.name
          ) FILTER (WHERE i.id IS NOT NULL),
