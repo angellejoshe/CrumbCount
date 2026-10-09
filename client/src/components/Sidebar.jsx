@@ -10,7 +10,7 @@ export default function Sidebar({ activePage, onNavigate }) {
       <div className="sidebar-brand">
         <div className="brand-mark">
           <img
-            src="/bakedby912-logo.jpg"
+            src={`${import.meta.env.BASE_URL}bakedby912-logo.jpg`}
             alt="BakedBy912 logo"
             className="brand-logo"
           />
