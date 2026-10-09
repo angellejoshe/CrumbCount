@@ -1,27 +1,55 @@
 # Weekly reports
 
-Five minutes a week. Add a new section at the top; never edit an old one.
+## Week of September 23, 2026
 
-The value is entirely in writing them **while it is happening**. What took four
-hours and why is invisible a month later, and it is exactly what your journal
-needs.
+### What changed this week
 
----
+- I decided on the main features for the project.
+- I finalized the UI I wanted after thinking about how I wanted it to look.
+- I identified the routes and other technical details for the project.
 
-## Week of YYYY-MM-DD
+### Why
 
-**Done.** What actually works now, in the deployed app rather than on your laptop.
+- I wanted to start the project with a clear plan.
+- These decisions helped me choose the direction for the project.
 
-**Stuck.** What is not working, and the most specific description you can give.
-"CORS" is not specific. "The preflight OPTIONS returns 404 because my router is
-mounted above cors" is.
+### What I got stuck on
 
-**Hours.** Roughly. You will need this to estimate anything, ever.
+- I felt overwhelmed by the technical parts and was unsure how to organize them.
+- I wanted the visuals to look good and be easy to understand.
 
-**Next.** One or two things, not a wish list.
+### What is left
 
----
+- Start coding the project.
+- Begin building the full-stack features.
 
-## Week of YYYY-MM-DD
+## Week of September 30, 2026
 
-...
+### What changed this week
+
+- I started developing CrumbCount in React.
+- I created the Overview, Inventory, and Recipe Costing pages based on my UI plan.
+- I added features to add, edit, delete, and update inventory items.
+- I added a Recipe Costing form that calculates batch cost, cost per piece, and
+  estimated profit.
+- I added the ability to save a new recipe costing to the list.
+
+### Why
+
+- I wanted to turn my plans and designs into a working application.
+- I wanted to learn how React components and state work.
+- I wanted the Inventory and Recipe Costing sections to work together.
+
+### What I got stuck on
+
+- I was still learning how React components and state work.
+- I had difficulty connecting the parts of the application and showing changes
+  correctly.
+- I was unsure how the temporary data would connect to the database.
+
+### What is left
+
+- Connect Inventory and Recipe Costing to the backend and PostgreSQL database.
+- Make data persist after refreshing the page.
+- Continue improving and testing the application.
+- Complete the remaining full-stack features.

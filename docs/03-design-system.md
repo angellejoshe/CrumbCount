@@ -1,33 +1,37 @@
 # Design system
 
-The rules your interface follows, written down, so that screen four looks like
-screen one.
+![CrumbCount design system showing colours, fonts, spacing, and interface states](../assets/design-system.svg)
 
-**Part of this is a visual document**, submitted as a PDF or images. Swatches,
-type samples and component states, not paragraphs describing them.
+CrumbCount uses a warm brown and cream style to match a small bakery.
 
-## What to record
+## Colours
 
-**Colour.** Every colour, with its hex value and the name you use for it in code.
-Check text against its background for contrast; the WCAG minimum is 4.5 to 1 for
-normal text, and it is checked.
+| Name | Colour |
+| --- | --- |
+| Page background | `#f7f4f0` |
+| Cards and forms | `#ffffff` |
+| Brown | `#4a3b32` |
+| Dark brown | `#342821` |
+| Accent | `#c98b5b` |
+| Light accent | `#f2e3d5` |
+| Main text | `#222222` |
+| Muted text | `#817970` |
 
-**Type.** The family, and the sizes you actually use, each with a name. Three or
-four sizes is plenty.
+These colours are set as CSS variables in `client/src/styles.css`. Some accent
+and muted text colours need more contrast on white, so they should be darkened
+when used for important text.
 
-**Spacing.** One scale, and stick to it. Numbers chosen at random per component
-is the single most common reason a student project looks unfinished.
+## Type and spacing
 
-**Components.** For each reusable piece: what it looks like normally, on hover,
-focused, disabled, and while loading. **Focus states are not optional**: removing
-an outline without replacing it makes your app unusable with a keyboard.
+- **DM Sans** for body text and forms.
+- **Playfair Display** for headings.
+- **DM Mono** for small labels and numbers.
+- Use spacing in steps of 4, 8, 12, 16, 24, 32, 40, or 48 pixels.
+- Page padding is 32px on desktop and 20px on mobile.
 
-**States.** Loading, empty, error and data are four different screens. Decide what
-each looks like once, here, rather than improvising per page.
+## Components and states
 
-## In code
-
-Say where these live: CSS custom properties, a Tailwind config, a theme object, a
-component library you configured. The template starts with custom properties in
-`client/src/styles.css`. Module 3 covered the alternatives; use the one you can
-defend.
+Buttons darken on hover, and keyboard focus uses an outline. Fields have a
+white background and a light border. The app has loading, empty, error, and
+data states; examples are shown in the visual sheet. Disabled and loading
+button styles still need to be added.

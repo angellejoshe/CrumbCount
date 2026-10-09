@@ -1,24 +1,47 @@
-# Mockup
+# CrumbCount Mockup
 
-Your prelim wireframes are finished and are not being redone. The mockup is what
-the app will actually look like: the wireframes painted in, with your real
-colours, type, spacing and content.
+These mockups show the main CrumbCount screens and forms. The app uses a warm
+brown and cream colour palette, clear stock and costing information, and simple
+forms for entering bakery data.
 
-**This is submitted as images or a PDF.** A written description of a picture
-scores in the lowest band, because the thing being asked for is the picture.
+## Overview
 
-Put the exported images in `assets/` and link them here, so the repository
-carries them too.
+![CrumbCount overview showing the dashboard and empty-state totals](../assets/overview.png)
 
-## What it should show
+## Inventory
 
-- Every screen in your revised proposal, and no screens that are not in it
-- Real content, not "Lorem ipsum" and not "Title here"
-- The empty state of at least one screen, because that is the one people forget
-- What it looks like on a phone
+![Inventory screen showing stock totals, filters, and an empty ingredient list](../assets/inventory.png)
 
-## Honest note
+## Recipe costing
 
-Anything in the mockup that is not in the built app by the end needs a sentence
-in your journal explaining what happened. That is a normal part of building
-something, and saying so reads far better than quietly shipping less.
+![Recipe costing screen showing the empty recipe list](../assets/recipecosting.png)
+
+## Add an ingredient
+
+![Form for adding an ingredient and its stock and price details](../assets/addingredient.png)
+
+## Create a recipe costing
+
+![Form for creating a recipe costing](../assets/createrecipe.png)
+
+## Phone view
+
+### Overview
+
+![CrumbCount overview on a phone](../assets/phoneoverview.png)
+
+### Inventory
+
+![Inventory screen on a phone](../assets/phoneinventory.png)
+
+### Recipe costing
+
+![Recipe costing screen on a phone](../assets/phonerecipecosting.png)
+
+### Add an ingredient
+
+![Add ingredient form on a phone](../assets/phoneaddingredient.png)
+
+### Create a recipe costing
+
+![Recipe costing form on a phone](../assets/phonecreaterecipe.png)

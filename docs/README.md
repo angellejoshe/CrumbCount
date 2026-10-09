@@ -12,9 +12,8 @@ repository, so it is versioned alongside the thing it describes.
 | [05-demo-video.md](05-demo-video.md) | the recording, and its plan | the end |
 | [06-security-and-privacy.md](06-security-and-privacy.md) | what you checked before making this public | before your first push |
 
-Put images in `assets/`. A screenshot named `assets/screenshot.png` is referenced
-by the main README, and a README with an image reads as finished in a way one
-without an image does not.
+Put mockups and other project visuals in `assets/`; link them from the relevant
+document so readers can find them.
 
 **Write these as you go.** A weekly report written on the last day is obvious to
 read and worth very little.

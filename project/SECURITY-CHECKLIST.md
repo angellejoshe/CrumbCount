@@ -28,7 +28,7 @@ If your project has no workflows, mark every row N/A and say so once.
 | 9 | No workflow step echoes, dumps or debug-prints a secret, and I opened a recent run's log to confirm | Yes | The workflow does not echo environment values or print credentials; it only emits build and deployment status |
 | 10 | Uploaded build artifacts contain no `.env`, key file or generated config | Yes | The workflow uploads `client/dist` only, which is a built frontend bundle and does not include `.env` or keys |
 | 11 | Third-party actions are pinned to a commit SHA, not a moveable tag | Yes | The workflow uses full commit SHAs for `actions/checkout`, `actions/setup-node`, `actions/upload-pages-artifact`, and `actions/deploy-pages` |
-| 12 | Secret scanning and push protection are enabled on the repository | No | I have not verified or enabled GitHub repo settings yet; this needs to be configured before the repo is public |
+| 12 | Secret scanning and push protection are enabled on the repository | No | These GitHub repository settings could not be verified from public repository metadata; check the Security settings directly |
 
 ## Database
 
@@ -44,17 +44,17 @@ If your project has no workflows, mark every row N/A and say so once.
 
 | # | Check | Yes / No / N/A | Evidence |
 | --- | --- | --- | --- |
-| 18 | The app has an access layer: Cloudflare Zero Trust, an app-level password, or a real login | Yes | `server/server.js` now requires a bearer token or `X-API-Key` for every non-health route, using a server-side `API_ACCESS_TOKEN` |
+| 18 | The app has an access layer: Cloudflare Zero Trust, an app-level password, or a real login | Yes | The self-hosted API requires a shared token in production; this is single-user access, not an individual login |
 | 19 | If Supabase or Firebase: Row Level Security or security rules are on, and I tested it signed out | N/A | This project is not built on Supabase or Firebase |
-| 20 | If Zero Trust: tjakoen.s@gmail.com is on the access policy. If an app password: the credentials are in my private workspace `project/README.md` | N/A | This project uses an environment-based API token rather than Zero Trust or an app password |
-| 21 | The gate covers every route, including the ones that only change data | Yes | The middleware in `server/server.js` blocks all non-`/healthz` and `/readyz` requests unless the correct token is provided |
-| 22 | The credentials for the gate are environment variables, not in source | Yes | The enforced token is configured via `API_ACCESS_TOKEN` in the server environment and documented in `server/.env.example`; the client side uses `VITE_API_KEY` in `.env` only |
+| 20 | If Zero Trust: confirm the account is on the access policy. If an app password: keep the credentials in a private workspace, not this repository | N/A | This project uses an environment-based API token rather than Zero Trust or an app password |
+| 21 | The gate covers every route, including the ones that only change data | Yes | The middleware in `server/server.js` blocks all routes except `/healthz` and `/readyz` unless the correct token is provided |
+| 22 | The credentials for the gate are environment variables, not in source | Yes | The server reads `API_ACCESS_TOKEN` from its environment; never put a real value in a `VITE_` variable because frontend values are public |
 
 ## Input and output
 
 | # | Check | Yes / No / N/A | Evidence |
 | --- | --- | --- | --- |
-| 23 | Input from the user is validated on the server, not only in the browser | Yes | `validateIngredient` and `validateRecipe` in `server/server.js` reject empty values, invalid IDs, negative numbers, and bad ingredient payloads before writing to the database |
+| 23 | Input from the user is validated on the server, not only in the browser | Yes | `validateIngredient` and `validateRecipe` in `server/server.js` reject empty values, overlong text, invalid IDs, negative numbers, and bad ingredient payloads before writing to the database |
 | 24 | User-supplied text is escaped when rendered, so it cannot inject markup or script | Yes | The React client renders strings normally and there is no `dangerouslySetInnerHTML` or `innerHTML` usage in `client/src` |
 | 25 | Error responses do not expose stack traces, file paths or connection details | Yes | The error middleware returns only generic JSON (`Something went wrong on the server`) and logs the actual errors on the server, not to the client |
 | 26 | CORS is not a wildcard on routes that change data | Yes | `server/server.js` sets `cors({ origin: allowedOrigins })` from a configured allowlist rather than `*` |
@@ -63,12 +63,12 @@ If your project has no workflows, mark every row N/A and say so once.
 
 | # | Check | Yes / No / N/A | Evidence |
 | --- | --- | --- | --- |
-| 27 | No student number, personal email, phone number or home address in the repository or in commit messages | Yes | A repo-wide search found no personal contact details or identifiers in project files or commit metadata |
+| 27 | No student number, personal email, phone number or home address in the repository or in commit messages | No | Git commit history contains a personal author email. Use a GitHub noreply address for future public commits; old commits still contain the earlier author metadata |
 | 28 | No classmate's personal data in the repository | Yes | The sample data in `server/db/seed.sql` is fictional inventory and recipe data, not real people’s info |
-| 29 | Dependencies come from official registries, and `node_modules` is gitignored | Yes | The project uses npm packages from the official registry, and `.gitignore` includes `node_modules/` |
-| 30 | Images, fonts and other assets are mine, licensed, or credited | Yes | The project uses local styling and generated example data; no third-party image or font files are included without attribution |
-| 31 | Repository visibility is deliberate, and I checked it after my last push | No | The repo is still local and has not been checked for public visibility after the last push; it should be set deliberately before publication |
+| 29 | Dependencies come from official registries, and `node_modules` is gitignored | Yes | Dependencies are installed with npm, `node_modules/` is ignored, and `npm audit --omit=dev` reports no production advisories |
+| 30 | Images, fonts and other assets are mine, licensed, or credited | No | The live site requests fonts from Google Fonts; ownership or publication permission for the illustrated logo and mockup screenshots has not been confirmed |
+| 31 | Repository visibility is deliberate, and I checked it after my last push | No | GitHub confirms the repository is public and Pages is enabled, but the owner's intent for public visibility still needs confirmation |
 
 ## Anything I found and fixed
 
-This checklist caught the biggest remaining gap: the API had no access control at all, so create/update/delete routes were exposed without any gate. I fixed that by adding a server-side API token requirement for all non-health routes and documenting the required `API_ACCESS_TOKEN` and `VITE_API_KEY` environment variables in the example env files. I also confirmed there are no committed secrets and that the SQL layer uses parameterized queries, so no credential leakage or SQL-injection issue was found in the checked-in code. The repo also still needs deliberate GitHub security settings and a clear public/private visibility decision before publication.
+The server uses parameterized SQL, validates input, limits CORS to configured origins, requires a shared API token in production, adds Helmet headers, rate-limits API requests, and verifies TLS for remote database connections. The live Pages app uses browser storage and does not use the API. A personal author email remains in Git history, and GitHub security settings still need checking. Never place a real API token in a `VITE_` variable; it becomes public in the frontend bundle.

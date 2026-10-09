@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1620" viewBox="0 0 1200 1620" role="img" aria-labelledby="title desc">
+  <title id="title">CrumbCount design system</title>
+  <desc id="desc">Visual reference for CrumbCount's colors, typography, spacing, component states, and interface states.</desc>
+  <rect width="1200" height="1620" fill="#f7f4f0"/>
+  <rect x="0" y="0" width="1200" height="16" fill="#d55332"/>
+
+  <text x="68" y="82" fill="#93473e" font-family="monospace" font-size="14" letter-spacing="4">CRUMBCOUNT  /  UI RULES</text>
+  <text x="64" y="154" fill="#34251d" font-family="Georgia,serif" font-size="64">Design system</text>
+  <text x="68" y="194" fill="#4b4039" font-family="Arial,sans-serif" font-size="20">Warm, clear, and practical for the everyday work behind a small bakery.</text>
+
+  <rect x="64" y="232" width="1072" height="290" rx="24" fill="#fffdf9"/>
+  <text x="96" y="278" fill="#93473e" font-family="monospace" font-size="14" letter-spacing="3">01  /  COLOUR PALETTE</text>
+  <text x="96" y="310" fill="#4b4039" font-family="Arial,sans-serif" font-size="16">Core CSS custom properties — contrast notes are for text on a light surface.</text>
+
+  <g font-family="Arial,sans-serif">
+    <rect x="96" y="334" width="148" height="104" rx="12" fill="#f7f4f0" stroke="#e7e0da"/>
+    <text x="108" y="462" fill="#342821" font-size="14">Page · --bg</text>
+    <text x="108" y="484" fill="#776c64" font-size="13">#f7f4f0</text>
+
+    <rect x="264" y="334" width="148" height="104" rx="12" fill="#ffffff" stroke="#e7e0da"/>
+    <text x="276" y="462" fill="#342821" font-size="14">Surface</text>
+    <text x="276" y="484" fill="#776c64" font-size="13">#ffffff</text>
+
+    <rect x="432" y="334" width="148" height="104" rx="12" fill="#4a3b32"/>
+    <text x="444" y="462" fill="#342821" font-size="14">Primary</text>
+    <text x="444" y="484" fill="#776c64" font-size="13">#4a3b32</text>
+
+    <rect x="600" y="334" width="148" height="104" rx="12" fill="#342821"/>
+    <text x="612" y="462" fill="#342821" font-size="14">Primary dark</text>
+    <text x="612" y="484" fill="#776c64" font-size="13">#342821</text>
+
+    <rect x="768" y="334" width="148" height="104" rx="12" fill="#c98b5b"/>
+    <text x="780" y="462" fill="#342821" font-size="14">Accent*</text>
+    <text x="780" y="484" fill="#776c64" font-size="13">#c98b5b</text>
+
+    <rect x="936" y="334" width="168" height="104" rx="12" fill="#f2e3d5" stroke="#e7e0da"/>
+    <text x="948" y="462" fill="#342821" font-size="14">Accent pale</text>
+    <text x="948" y="484" fill="#776c64" font-size="13">#f2e3d5</text>
+
+    <text x="96" y="510" fill="#93473e" font-size="13">* Accent on white is 2.87:1; do not use for normal-size text until darkened.</text>
+  </g>
+
+  <rect x="64" y="546" width="1072" height="264" rx="24" fill="#fffdf9"/>
+  <text x="96" y="592" fill="#93473e" font-family="monospace" font-size="14" letter-spacing="3">02  /  TYPOGRAPHY</text>
+  <text x="96" y="658" fill="#34251d" font-family="Georgia,serif" font-size="42">Make the next batch feel lighter.</text>
+  <text x="98" y="696" fill="#4b4039" font-family="Arial,sans-serif" font-size="20">DM Sans · body, forms, and buttons · 14–16px</text>
+  <text x="98" y="734" fill="#93473e" font-family="monospace" font-size="16" letter-spacing="2">DM MONO · EYEBROWS, TABLE LABELS, NUMBERS · 8–13px</text>
+  <text x="98" y="776" fill="#776c64" font-family="Arial,sans-serif" font-size="14">Display: Playfair Display; overview headline currently uses Georgia.</text>
+
+  <rect x="64" y="834" width="1072" height="196" rx="24" fill="#fffdf9"/>
+  <text x="96" y="880" fill="#93473e" font-family="monospace" font-size="14" letter-spacing="3">03  /  SPACING + SHAPE</text>
+  <text x="96" y="916" fill="#4b4039" font-family="Arial,sans-serif" font-size="16">Scale for new components: 4 · 8 · 12 · 16 · 24 · 32 · 40 · 48px</text>
+  <g fill="#c98b5b">
+    <rect x="100" y="944" width="8" height="28" rx="4"/>
+    <rect x="142" y="944" width="16" height="28" rx="4"/>
+    <rect x="192" y="944" width="24" height="28" rx="4"/>
+    <rect x="250" y="944" width="32" height="28" rx="4"/>
+    <rect x="320" y="944" width="48" height="28" rx="4"/>
+    <rect x="406" y="944" width="64" height="28" rx="4"/>
+    <rect x="508" y="944" width="80" height="28" rx="4"/>
+    <rect x="626" y="944" width="96" height="28" rx="4"/>
+  </g>
+  <g fill="#776c64" font-family="monospace" font-size="12">
+    <text x="98" y="994">4</text><text x="140" y="994">8</text>
+    <text x="190" y="994">12</text><text x="248" y="994">16</text>
+    <text x="318" y="994">24</text><text x="404" y="994">32</text>
+    <text x="506" y="994">40</text><text x="624" y="994">48</text>
+  </g>
+  <text x="758" y="958" fill="#4b4039" font-family="Arial,sans-serif" font-size="15">32px desktop / 20px mobile page padding.</text>
+  <text x="758" y="984" fill="#776c64" font-family="Arial,sans-serif" font-size="13">Existing styles still have spacing exceptions.</text>
+
+  <rect x="64" y="1054" width="1072" height="270" rx="24" fill="#fffdf9"/>
+  <text x="96" y="1100" fill="#93473e" font-family="monospace" font-size="14" letter-spacing="3">04  /  COMPONENT STATES</text>
+  <text x="96" y="1134" fill="#4b4039" font-family="Arial,sans-serif" font-size="15">Primary action · rest / hover / keyboard focus / disabled / loading</text>
+
+  <rect x="96" y="1160" width="180" height="52" rx="26" fill="#4a3b32"/>
+  <text x="127" y="1193" fill="#ffffff" font-family="Arial,sans-serif" font-size="16">+ Add stock</text>
+  <text x="132" y="1238" fill="#776c64" font-family="monospace" font-size="12">REST</text>
+
+  <rect x="314" y="1160" width="180" height="52" rx="26" fill="#342821"/>
+  <text x="337" y="1193" fill="#ffffff" font-family="Arial,sans-serif" font-size="16">+ Add stock</text>
+  <text x="358" y="1238" fill="#776c64" font-family="monospace" font-size="12">HOVER</text>
+
+  <rect x="532" y="1156" width="188" height="60" rx="30" fill="#4a3b32" stroke="#c98b5b" stroke-width="3"/>
+  <text x="557" y="1193" fill="#ffffff" font-family="Arial,sans-serif" font-size="16">+ Add stock</text>
+  <text x="583" y="1238" fill="#776c64" font-family="monospace" font-size="12">FOCUS*</text>
+
+  <rect x="758" y="1160" width="160" height="52" rx="26" fill="#e7e0da"/>
+  <text x="785" y="1193" fill="#817970" font-family="Arial,sans-serif" font-size="16">Unavailable</text>
+  <text x="804" y="1238" fill="#776c64" font-family="monospace" font-size="12">NOT IN CODE</text>
+
+  <rect x="950" y="1160" width="154" height="52" rx="26" fill="#e7e0da"/>
+  <text x="975" y="1193" fill="#817970" font-family="Arial,sans-serif" font-size="15">Loading…</text>
+  <text x="979" y="1238" fill="#776c64" font-family="monospace" font-size="12">NOT IN CODE</text>
+
+  <rect x="96" y="1270" width="520" height="34" rx="7" fill="#ffffff" stroke="#e7e0da"/>
+  <text x="112" y="1292" fill="#776c64" font-family="Arial,sans-serif" font-size="13">Search ingredients…  ·  white field / warm border</text>
+  <text x="650" y="1284" fill="#93473e" font-family="Arial,sans-serif" font-size="13">* Current focus accent misses 3:1 non-text contrast.</text>
+  <text x="650" y="1305" fill="#776c64" font-family="Arial,sans-serif" font-size="13">Search field focus ring is currently overridden.</text>
+
+  <rect x="64" y="1348" width="1072" height="210" rx="24" fill="#fffdf9"/>
+  <text x="96" y="1394" fill="#93473e" font-family="monospace" font-size="14" letter-spacing="3">05  /  INTERFACE STATES</text>
+  <rect x="96" y="1420" width="236" height="98" rx="12" fill="#f7f4f0" stroke="#e7e0da"/>
+  <text x="114" y="1454" fill="#342821" font-family="Arial,sans-serif" font-size="16">Loading</text>
+  <text x="114" y="1484" fill="#776c64" font-family="Arial,sans-serif" font-size="13">Loading recipe costings…</text>
+
+  <rect x="352" y="1420" width="236" height="98" rx="12" fill="#f7f4f0" stroke="#e7e0da"/>
+  <text x="370" y="1454" fill="#342821" font-family="Arial,sans-serif" font-size="16">Empty</text>
+  <text x="370" y="1484" fill="#776c64" font-family="Arial,sans-serif" font-size="13">No ingredients found.</text>
+
+  <rect x="608" y="1420" width="236" height="98" rx="12" fill="#fff1f1" stroke="#e7e0da"/>
+  <text x="626" y="1454" fill="#8a2d2d" font-family="Arial,sans-serif" font-size="16">Error</text>
+  <text x="626" y="1484" fill="#8a2d2d" font-family="Arial,sans-serif" font-size="13">Inline alert with error message.</text>
+
+  <rect x="864" y="1420" width="240" height="98" rx="12" fill="#ffffff" stroke="#e7e0da"/>
+  <text x="882" y="1454" fill="#342821" font-family="Arial,sans-serif" font-size="16">Data</text>
+  <text x="882" y="1484" fill="#776c64" font-family="Arial,sans-serif" font-size="13">Inventory table / recipe cards.</text>
+
+  <text x="68" y="1590" fill="#776c64" font-family="monospace" font-size="12" letter-spacing="1">SOURCE: client/src/styles.css  ·  CSS CUSTOM PROPERTIES + COMPONENT RULES</text>
+</svg>

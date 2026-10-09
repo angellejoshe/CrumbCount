@@ -1,6 +1,8 @@
 import crypto from 'node:crypto'
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
+import { rateLimit } from 'express-rate-limit'
 
 import { pool } from './db/pool.js'
 import * as crumbcount from './sightingsRepo.js'
@@ -9,6 +11,34 @@ const app = express()
 
 const expectedToken = process.env.API_ACCESS_TOKEN
 const authRequired = process.env.REQUIRE_API_AUTH === 'true' || process.env.NODE_ENV === 'production'
+const trustProxyHops = Number(process.env.TRUST_PROXY_HOPS || 0)
+
+if (!Number.isInteger(trustProxyHops) || trustProxyHops < 0) {
+  throw new Error('TRUST_PROXY_HOPS must be a non-negative integer.')
+}
+
+app.set('trust proxy', trustProxyHops)
+
+// Only allow the frontend origins configured for this application.
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+app.use(helmet())
+app.use(cors({ origin: allowedOrigins }))
+app.use(express.json({ limit: '100kb' }))
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (request, response) => {
+    response.status(429).json({
+      error: 'Too many requests. Please try again later.',
+    })
+  },
+}))
 
 function requireApiAuth(request, response, next) {
   if (!authRequired) {
@@ -42,14 +72,6 @@ function requireApiAuth(request, response, next) {
   return next()
 }
 
-// Only allow the frontend origins configured for this application.
-const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean)
-
-app.use(cors({ origin: allowedOrigins }))
-app.use(express.json({ limit: '100kb' }))
 app.use((request, response, next) => {
   if (request.path === '/healthz' || request.path === '/readyz') {
     return next()

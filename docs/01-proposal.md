@@ -1,18 +1,26 @@
-# Proposal
+# CrumbCount Proposal
 
-The submitted version is your Canvas answer for m8a1. This copy lives in the
-repository so the plan and the code sit next to each other.
+CrumbCount is a web app for tracking bakery ingredients and checking the cost
+of recipes. It is made for a small bakery or a student baker who wants a simple
+way to manage stock and prices.
 
-Paste or rewrite the proposal here, and **keep it updated** as things change. A
-proposal that still describes a feature you cut in October is worse than no
-proposal.
+## Main features
 
-## The parts most likely to drift
+- Add, edit, and remove ingredients and recipes.
+- Track stock levels and see which ingredients need restocking.
+- Estimate recipe costs using ingredient prices and quantities.
 
-- **Core features.** Move anything you cut to stretch goals rather than deleting
-  it. The record of what you cut, and why, is worth marks.
-- **Where each piece is hosted.** Client, API, database, and the free tier's
-  catch for each. If you change host, note the date and the reason.
-- **The date demo mode goes off.** If that date has passed and it is still on,
-  that is the most important line in this file.
-- **Risks.** Which have shrunk, which grew, which turned out to be nothing.
+## Tools and plan
+
+The app uses React and Vite for the website, Express for the API, and
+PostgreSQL for saving data. The client is set up for GitHub Pages. The API and
+database will need to be hosted separately for online use.
+
+I will test the app with sample bakery data and check that the inventory and
+recipe-costing features work. A main risk is keeping ingredient units and recipe
+quantities consistent, so I will test those calculations carefully.
+
+## Stretch goal
+
+If there is enough time, I would like to improve the reports and make the app
+easier to use on a phone.

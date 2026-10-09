@@ -11,19 +11,35 @@ if (!process.env.DATABASE_URL) {
   process.exit(1)
 }
 
-// A local PostgreSQL has no TLS configured. Every managed host requires it and
-// presents a certificate chain Node does not trust out of the box, which is why
-// rejectUnauthorized is false: the connection is still encrypted, it is just not
-// verifying who is on the other end. That is the standard tradeoff for a
-// student project. If your host publishes a CA certificate, pass it as
-// ssl: { ca: readFileSync('ca.pem') } instead and say so in your journal.
-const isLocal =
-  process.env.DATABASE_URL.includes('localhost') ||
-  process.env.DATABASE_URL.includes('127.0.0.1')
+// Local PostgreSQL has no TLS. Managed database URLs should request TLS with
+// certificate verification (for example, sslmode=verify-full).
+const databaseUrl = new URL(process.env.DATABASE_URL)
+const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(
+  databaseUrl.hostname
+)
+
+if (!isLocal) {
+  const sslMode = databaseUrl.searchParams.get('sslmode')?.toLowerCase()
+  const usesLibpqCompat =
+    databaseUrl.searchParams.get('uselibpqcompat')?.toLowerCase() === 'true'
+  const sslSetting = databaseUrl.searchParams.get('ssl')?.toLowerCase()
+
+  if (
+    sslMode === 'disable' ||
+    sslMode === 'no-verify' ||
+    sslSetting === '0' ||
+    sslSetting === 'false' ||
+    (usesLibpqCompat && sslMode !== 'verify-full')
+  ) {
+    throw new Error(
+      'Remote DATABASE_URL must verify its TLS certificate; remove insecure SSL options.'
+    )
+  }
+}
 
 export const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: isLocal ? false : { rejectUnauthorized: false },
+  ssl: isLocal ? false : { rejectUnauthorized: true },
   max: 5,                          // free tiers allow far fewer than you think
   idleTimeoutMillis: 10_000,       // hand connections back quickly
   connectionTimeoutMillis: 5_000,  // fail fast rather than hanging the request

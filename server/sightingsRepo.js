@@ -17,7 +17,7 @@ export async function getAllIngredients(pool) {
        created_at,
        updated_at
      FROM ingredients
-     ORDER BY name ASC`
+     ORDER BY name ASC`,
   )
 
   return result.rows

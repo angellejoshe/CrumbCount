@@ -21,4 +21,7 @@ For the browser-only version:
     npm run dev
 
 To use the Express API and PostgreSQL, set up the database and server using the
-example environment files in `server/` and `client/`.
+example environment files in `server/` and `client/`. For personal use, the
+GitHub Pages app stays in browser-local mode and does not require a sign-in.
+The optional self-hosted API uses one shared token; do not put a real token in a
+public frontend build.
