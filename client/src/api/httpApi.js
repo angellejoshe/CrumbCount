@@ -2,11 +2,13 @@
 // Every function here communicates with the Express backend.
 
 const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const API_KEY = import.meta.env.VITE_API_KEY
 
 async function request(path, options = {}) {
   const response = await fetch(`${BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
       ...(options.headers || {}),
     },
     ...options,

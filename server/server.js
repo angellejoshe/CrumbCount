@@ -1,9 +1,45 @@
+import crypto from 'node:crypto'
 import express from 'express'
 import cors from 'cors'
 import { pool } from './db/pool.js'
 import * as crumbcount from './sightingsRepo.js'
 
 const app = express()
+
+const expectedToken = process.env.API_ACCESS_TOKEN
+const authRequired = process.env.REQUIRE_API_AUTH === 'true' || process.env.NODE_ENV === 'production'
+
+function requireApiAuth(request, response, next) {
+  if (!authRequired) {
+    return next()
+  }
+
+  if (!expectedToken) {
+    console.error('API access token is not configured. Set API_ACCESS_TOKEN in the server environment.')
+    return response.status(500).json({ error: 'API access is not configured on this server' })
+  }
+
+  const providedToken =
+    request.headers.authorization?.startsWith('Bearer ')
+      ? request.headers.authorization.slice('Bearer '.length).trim()
+      : request.headers['x-api-key'] || ''
+
+  if (!providedToken) {
+    return response.status(401).json({ error: 'Authentication required' })
+  }
+
+  const providedBuffer = Buffer.from(providedToken, 'utf8')
+  const expectedBuffer = Buffer.from(expectedToken, 'utf8')
+
+  if (
+    providedBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(providedBuffer, expectedBuffer)
+  ) {
+    return response.status(401).json({ error: 'Invalid API key' })
+  }
+
+  return next()
+}
 
 // Only allow the frontend origins configured for this application.
 const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
@@ -13,6 +49,13 @@ const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173')
 
 app.use(cors({ origin: allowedOrigins }))
 app.use(express.json({ limit: '100kb' }))
+app.use((request, response, next) => {
+  if (request.path === '/healthz' || request.path === '/readyz') {
+    return next()
+  }
+
+  return requireApiAuth(request, response, next)
+})
 
 // --------------------------------------------------
 // Health checks
