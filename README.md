@@ -116,10 +116,9 @@ Never put a key, a password or a connection string in one.
 
 1. **Settings > Pages > Build and deployment > Source: GitHub Actions.** Without
    this the workflow goes green and publishes nothing.
-2. Nothing else, until your API is live. Demo mode is the default, so the first
-   deploy works on its own. When the API is up, add `VITE_USE_MOCK_API` = `false`
-   and `VITE_API_BASE_URL` under **Settings > Secrets and variables > Actions >
-   Variables**, then re-run the workflow.
+2. The Pages workflow builds browser-local demo mode, so no API setup is needed.
+   Data is saved only in each visitor's browser. The Express API and PostgreSQL
+   are separate and are not used by this personal-use Pages deployment.
 
 The repository must be **public** for Pages to serve it on a free account.
 

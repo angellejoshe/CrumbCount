@@ -78,6 +78,16 @@ select:focus-visible {
   padding: var(--screen-padding);
 }
 
+.demo-notice {
+  max-width: 1520px;
+  margin: 0 auto 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--accent-light);
+  border-radius: 10px;
+  background: #fffaf4;
+  color: var(--primary-dark);
+}
+
 .page-content {
   width: 100%;
   max-width: 1520px;
