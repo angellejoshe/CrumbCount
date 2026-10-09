@@ -1,103 +1,4 @@
-const STORAGE_KEY = 'crumbcount:demo:v1'
-
-const seedData = {
-  ingredients: [
-    {
-      id: 1,
-      name: 'All-Purpose Flour',
-      category: 'Baking basics',
-      stock_quantity: 5,
-      purchase_unit: 'kg',
-      current_price: 70,
-      quantity_per_purchase_unit: 1000,
-      recipe_unit: 'g',
-      reorder_level: 1,
-    },
-    {
-      id: 2,
-      name: 'Brown Sugar',
-      category: 'Sweeteners',
-      stock_quantity: 3,
-      purchase_unit: 'kg',
-      current_price: 120,
-      quantity_per_purchase_unit: 1000,
-      recipe_unit: 'g',
-      reorder_level: 0.5,
-    },
-    {
-      id: 3,
-      name: 'Butter',
-      category: 'Dairy',
-      stock_quantity: 5,
-      purchase_unit: 'kg',
-      current_price: 450,
-      quantity_per_purchase_unit: 1000,
-      recipe_unit: 'g',
-      reorder_level: 1,
-    },
-    {
-      id: 4,
-      name: 'Dark Chocolate',
-      category: 'Chocolate',
-      stock_quantity: 2,
-      purchase_unit: 'kg',
-      current_price: 620,
-      quantity_per_purchase_unit: 1000,
-      recipe_unit: 'g',
-      reorder_level: 0.5,
-    },
-    {
-      id: 5,
-      name: 'White Chocolate',
-      category: 'Chocolate',
-      stock_quantity: 2,
-      purchase_unit: 'kg',
-      current_price: 650,
-      quantity_per_purchase_unit: 1000,
-      recipe_unit: 'g',
-      reorder_level: 0.5,
-    },
-  ],
-  recipes: [
-    {
-      id: 1,
-      product_name: 'OG Cookie',
-      yield_amount: 12,
-      selling_price: 65,
-      ingredients: [
-        { ingredientId: 1, quantity: 250 },
-        { ingredientId: 2, quantity: 100 },
-        { ingredientId: 3, quantity: 120 },
-      ],
-    },
-    {
-      id: 2,
-      product_name: 'White Chocolate Cookie',
-      yield_amount: 12,
-      selling_price: 70,
-      ingredients: [
-        { ingredientId: 1, quantity: 250 },
-        { ingredientId: 2, quantity: 100 },
-        { ingredientId: 3, quantity: 120 },
-        { ingredientId: 5, quantity: 150 },
-      ],
-    },
-    {
-      id: 3,
-      product_name: 'Dark Chocolate Cookie',
-      yield_amount: 12,
-      selling_price: 70,
-      ingredients: [
-        { ingredientId: 1, quantity: 250 },
-        { ingredientId: 2, quantity: 100 },
-        { ingredientId: 3, quantity: 120 },
-        { ingredientId: 4, quantity: 150 },
-      ],
-    },
-  ],
-  nextIngredientId: 6,
-  nextRecipeId: 4,
-}
+const STORAGE_KEY = 'crumbcount:personal:v2'
 
 const delay = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 const copy = (value) => JSON.parse(JSON.stringify(value))
@@ -105,18 +6,12 @@ const copy = (value) => JSON.parse(JSON.stringify(value))
 function readState() {
   const stored = localStorage.getItem(STORAGE_KEY)
   if (!stored) {
-    const initialState = copy(seedData)
-    const now = new Date().toISOString()
-    initialState.ingredients = initialState.ingredients.map((ingredient) => ({
-      ...ingredient,
-      created_at: now,
-      updated_at: now,
-    }))
-    initialState.recipes = initialState.recipes.map((recipe) => ({
-      ...recipe,
-      created_at: now,
-      updated_at: now,
-    }))
+    const initialState = {
+      ingredients: [],
+      recipes: [],
+      nextIngredientId: 1,
+      nextRecipeId: 1,
+    }
     writeState(initialState)
     return initialState
   }
@@ -124,7 +19,7 @@ function readState() {
   try {
     return JSON.parse(stored)
   } catch (error) {
-    throw new Error('CrumbCount demo data is corrupted in this browser.', {
+    throw new Error('CrumbCount data is corrupted in this browser.', {
       cause: error,
     })
   }

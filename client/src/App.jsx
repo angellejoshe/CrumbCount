@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar.jsx'
-import DemoNotice from './components/DemoNotice.jsx'
 import {
   USING_MOCK_API,
   listIngredients,
@@ -100,8 +99,6 @@ export default function App() {
       />
 
       <main className="main-content">
-        <DemoNotice />
-
         <div className="page-content">
 
           {activePage === 'overview' && (
@@ -420,9 +417,9 @@ function HomePage({
           </div>
 
           <div className="overview-quick-note">
-            Inventory and recipe costing data are saved to
+            Inventory and recipe costing data are saved in
             {USING_MOCK_API
-              ? ' this browser only.'
+              ? ' this browser.'
               : ' the CrumbCount database.'}
           </div>
         </article>
@@ -432,7 +429,7 @@ function HomePage({
         <div className="overview-updates-heading">
           <div>
             <p className="overview-section-eyebrow">
-              {USING_MOCK_API ? 'BROWSER DATA' : 'DATABASE SNAPSHOT'}
+              {USING_MOCK_API ? 'RECENT UPDATES' : 'DATABASE SNAPSHOT'}
             </p>
 
             <h2>Recent inventory updates</h2>
