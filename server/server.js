@@ -10,7 +10,7 @@ import * as crumbcount from './sightingsRepo.js'
 const app = express()
 
 const expectedToken = process.env.API_ACCESS_TOKEN
-const authRequired = process.env.REQUIRE_API_AUTH === 'true' || process.env.NODE_ENV === 'production'
+const authRequired = process.env.REQUIRE_API_AUTH === 'true'
 const trustProxyHops = Number(process.env.TRUST_PROXY_HOPS || 0)
 
 if (!Number.isInteger(trustProxyHops) || trustProxyHops < 0) {
