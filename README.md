@@ -7,7 +7,7 @@ CrumbCount is a web-based inventory and costing management application designed 
 ## Project Links
 
 - **Live Site:** [CrumbCount](https://angellejoshe.github.io/CrumbCount/)
-- **Demo Video:** [Watch the CrumbCount Demo](YOUR_DEMO_VIDEO_LINK)
+- **Demo Video:** [Watch the CrumbCount Demo](https://drive.google.com/drive/folders/1oIJ229Hauit6M_SJfNkBtFFq8iNV3Q4O?usp=sharing)
 - **GitHub Repository:** [CrumbCount Repository](https://github.com/angellejoshe/CrumbCount)
 
 ## Features
