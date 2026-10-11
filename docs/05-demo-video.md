@@ -1,6 +1,6 @@
 # Demo video
 
-**Link:** [CrumbCount Demo](https://drive.google.com/file/d/17y34NGg8CRPNnLbBVeHnGcli41K7ZMQo/view?usp=sharing)
+**Link:** [CrumbCount Demo](https://drive.google.com/drive/folders/1oIJ229Hauit6M_SJfNkBtFFq8iNV3Q4O?usp=drive_link)
 
 ## Demo Content Structure
 
